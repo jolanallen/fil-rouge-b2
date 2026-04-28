@@ -28,4 +28,4 @@ année : 2025/2026
 
 <img width="1007" height="443" alt="Image" src="https://github.com/user-attachments/assets/a45561af-5ca5-4105-be0c-d54903f84824" />
 
-<img width="951" height="496" alt="Image" src="https://github.com/user-attachments/assets/64a97d3e-2766-494b-ab5c-7591d9eea98d" />
+<img width="951" height="496" alt="Image" src="https://github.com/user-attachments/assets/64a97d3e-2766-494b-ab5c-7591d9eea98d" />w

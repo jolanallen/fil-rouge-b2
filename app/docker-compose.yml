@@ -1,0 +1,41 @@
+services:
+  immoapp:
+    build:
+      context: .
+      dockerfile: DOCKERFILE
+      target: prod
+    container_name: immoapp
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - IMMOPREDICT_API_HOST=immopredict-api
+      - IMMOPREDICT_API_PORT=5000
+    ports:
+      - "8080:8080" 
+    depends_on:
+      - redis
+      - immopredict-api
+    restart: on-failure
+
+  redis:
+    image: redis:alpine
+    container_name: immopredict-redis
+    ports:
+      - "6379:6379"
+    restart: always
+
+  immopredict-api:
+    build:
+      context: .
+      dockerfile: DOCKERFILE
+      target: prod
+    container_name: immopredict-api
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - FLASK_APP=src/api/app.py
+    ports:
+      - "5000:5000"
+    depends_on:
+      - redis
+    restart: on-failure
