@@ -1,0 +1,4 @@
+Flask
+polars
+logging
+redis
