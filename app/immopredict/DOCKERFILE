@@ -38,7 +38,7 @@ USER appuser
 
 # On ne copie que le nécessaire
 COPY src/ ./src/
-COPY config.py .
+COPY src/config.py .
 
 # En prod, on utilise un serveur robuste comme Gunicorn (pas le serveur de dev Flask)
 RUN pip install --no-cache-dir gunicorn
