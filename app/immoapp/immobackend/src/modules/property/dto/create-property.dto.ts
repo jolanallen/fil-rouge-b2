@@ -62,4 +62,8 @@ export class CreatePropertyDto {
   @IsArray()
   @IsString({ each: true })
   images?: string[]
+
+  @IsOptional()
+  @IsString()
+  energyClass?: string
 }
