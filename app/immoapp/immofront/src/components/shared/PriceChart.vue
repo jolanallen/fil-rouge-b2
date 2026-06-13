@@ -104,7 +104,7 @@ const chartOptions = {
       grid: { color: 'rgba(0,0,0,0.06)' },
       ticks: {
         font: { size: 11, family: 'Inter' },
-        callback: (val: number) => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', notation: 'compact', maximumFractionDigits: 0 }).format(val)
+        callback: (val: string | number) => typeof val === 'number' ? new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', notation: 'compact', maximumFractionDigits: 0 }).format(val) : ''
       }
     }
   }
