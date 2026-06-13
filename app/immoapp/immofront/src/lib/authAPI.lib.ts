@@ -56,7 +56,7 @@ export async function register(data: RegisterDTO): Promise<AuthResponse> {
       firstName: data.firstName,
       lastName: data.lastName,
       phone: data.phone,
-      role: data.role,
+      role: 'client' as const,
       avatar: `https://api.dicebear.com/9.x/avataaars/svg?seed=${data.firstName}`,
       createdAt: new Date().toISOString()
     }
