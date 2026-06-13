@@ -66,8 +66,9 @@ export const useAuthStore = defineStore('auth', () => {
       save()
       return true
     } catch (e: any) {
-      error.value = e.message || 'Erreur de connexion'
-      toast.error(error.value)
+      const msg = e.message || 'Erreur de connexion'
+      error.value = msg
+      toast.error(msg)
       return false
     } finally {
       loading.value = false
@@ -86,8 +87,9 @@ export const useAuthStore = defineStore('auth', () => {
       toast.success('Compte créé avec succès')
       return true
     } catch (e: any) {
-      error.value = e.message || "Erreur d'inscription"
-      toast.error(error.value)
+      const msg = e.message || "Erreur d'inscription"
+      error.value = msg
+      toast.error(msg)
       return false
     } finally {
       loading.value = false
@@ -105,8 +107,9 @@ export const useAuthStore = defineStore('auth', () => {
       save()
       return true
     } catch (e: any) {
-      error.value = e.message || 'Erreur de connexion Google'
-      toast.error(error.value)
+      const msg = e.message || 'Erreur de connexion Google'
+      error.value = msg
+      toast.error(msg)
       return false
     } finally {
       loading.value = false
@@ -122,6 +125,13 @@ export const useAuthStore = defineStore('auth', () => {
     save()
   }
 
+  function clearSession() {
+    user.value = null
+    accessToken.value = null
+    refreshToken.value = null
+    localStorage.removeItem('auth')
+  }
+
   async function refresh(): Promise<boolean> {
     if (!refreshToken.value) return false
     try {
@@ -132,18 +142,19 @@ export const useAuthStore = defineStore('auth', () => {
       save()
       return true
     } catch {
-      logout()
+      clearSession()
       return false
     }
   }
 
   async function logout() {
-    await authAPI.logout()
-    user.value = null
-    accessToken.value = null
-    refreshToken.value = null
-    localStorage.removeItem('auth')
+    clearSession()
+    try {
+      await authAPI.logout()
+    } catch {
+      // Backend unreachable — session already cleared locally
+    }
   }
 
-  return { user, accessToken, refreshToken, loading, error, isAuthenticated, isStaff, fullName, init, login, register, loginWithGoogle, handleGoogleCallback, refresh, logout }
+  return { user, accessToken, refreshToken, loading, error, isAuthenticated, isStaff, fullName, init, login, register, loginWithGoogle, handleGoogleCallback, refresh, logout, clearSession }
 })
