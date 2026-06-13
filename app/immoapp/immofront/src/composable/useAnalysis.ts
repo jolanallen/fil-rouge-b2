@@ -68,9 +68,10 @@ export function useAnalysis() {
         eventSource.addEventListener('error', (e: any) => {
           try {
             const payload = parseData(e.data)
-            error.value = payload.message || "L'analyse a échoué"
-            toast.error(error.value)
-            task.value = { ...task.value!, status: 'error', message: error.value }
+            const msg = payload.message || "L'analyse a échoué"
+            error.value = msg
+            toast.error(msg)
+            task.value = { ...task.value!, status: 'error', message: msg }
           } catch { /* ignore */ }
           eventSource?.close()
           resolve()
@@ -91,7 +92,7 @@ export function useAnalysis() {
       result.value = await analysisAPI.getAnalysisResults(data.departmentCode)
     } catch (e: any) {
       error.value = e.message
-      toast.error(error.value)
+      toast.error(e.message)
     } finally {
       loading.value = false
     }
@@ -104,7 +105,7 @@ export function useAnalysis() {
       result.value = await analysisAPI.getAnalysisResults(department)
     } catch (e: any) {
       error.value = e.message
-      toast.error(error.value)
+      toast.error(e.message)
     } finally {
       loading.value = false
     }
