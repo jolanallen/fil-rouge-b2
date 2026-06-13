@@ -32,7 +32,7 @@ export function usePropertyFilter() {
       totalPages.value = response.totalPages
     } catch (e: any) {
       error.value = e.message
-      toast.error(error.value)
+      toast.error(e.message)
     } finally {
       loading.value = false
     }
