@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.env
+*.log
+coverage/
+*.tsbuildinfo
+src/**/*.d.ts
+.vite
