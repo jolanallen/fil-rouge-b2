@@ -94,6 +94,6 @@ export interface PropertyListResponse {
 
 export interface PropertyDetailResponse {
   property: Property
-  priceHistory: PropertyPriceHistory
+  priceHistory: PropertyPriceHistory | null
   similarProperties?: Property[]
 }
