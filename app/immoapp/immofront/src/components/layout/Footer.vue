@@ -92,9 +92,9 @@ const agencies = [
       <div class="border-t border-white/10 mt-12 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
         <p class="text-sm text-slate-400">&copy; {{ new Date().getFullYear() }} Y-Plaza. Tous droits réservés.</p>
         <div class="flex gap-6">
-          <a href="#" class="text-xs text-slate-400 hover:text-white transition-colors">Mentions légales</a>
-          <a href="#" class="text-xs text-slate-400 hover:text-white transition-colors">RGPD</a>
-          <a href="#" class="text-xs text-slate-400 hover:text-white transition-colors">CGV</a>
+          <router-link to="/mentions-legales" class="text-xs text-slate-400 hover:text-white transition-colors">Mentions légales</router-link>
+          <router-link to="/rgpd" class="text-xs text-slate-400 hover:text-white transition-colors">RGPD</router-link>
+          <router-link to="/cgv" class="text-xs text-slate-400 hover:text-white transition-colors">CGV</router-link>
         </div>
       </div>
     </div>
