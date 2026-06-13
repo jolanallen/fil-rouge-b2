@@ -101,6 +101,7 @@ async function request<T>(endpoint: string, options: RequestInit = {}, triedRefr
     if (res.status === 401 && !triedRefresh && !endpoint.includes('/auth/refresh') && !endpoint.includes('/auth/login')) {
       const refreshed = await attemptTokenRefresh()
       if (refreshed) return request<T>(endpoint, options, true)
+      localStorage.removeItem('auth')
     }
     throw new Error(await parseError(res))
   }
