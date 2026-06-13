@@ -9,7 +9,6 @@ export interface RegisterDTO {
   firstName: string
   lastName: string
   phone?: string
-  role: 'client' | 'staff'
 }
 
 
