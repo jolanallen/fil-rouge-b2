@@ -49,7 +49,6 @@ async function handleSubmit() {
       firstName: firstName.value || 'Utilisateur',
       lastName: lastName.value || 'Y-Plaza',
       phone: phone.value || undefined,
-      role: 'client'
     }
     const success = await auth.register(data)
     if (success) router.push('/dashboard')
