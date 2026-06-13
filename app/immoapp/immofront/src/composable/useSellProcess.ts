@@ -21,8 +21,9 @@ export function useSellProcess() {
       const response = await sellAPI.getSellProcessesForUser(userId)
       processes.value = response.data
     } catch (e: any) {
-      error.value = e.message
-      toast.error(error.value)
+      const msg = e.message
+      error.value = msg
+      toast.error(msg)
     } finally {
       loading.value = false
     }
@@ -35,8 +36,9 @@ export function useSellProcess() {
       const response = await sellAPI.getAllSellProcesses()
       allProcesses.value = response.data
     } catch (e: any) {
-      error.value = e.message
-      toast.error(error.value)
+      const msg = e.message
+      error.value = msg
+      toast.error(msg)
     } finally {
       loading.value = false
     }
@@ -50,8 +52,9 @@ export function useSellProcess() {
       messages.value = await sellAPI.getMessages(id)
       history.value = await sellAPI.getHistory(id)
     } catch (e: any) {
-      error.value = e.message
-      toast.error(error.value)
+      const msg = e.message
+      error.value = msg
+      toast.error(msg)
     } finally {
       loading.value = false
     }
@@ -82,8 +85,9 @@ export function useSellProcess() {
       if (currentProcess.value?.id === processId) currentProcess.value = updated
       return updated
     } catch (e: any) {
-      error.value = e.message
-      toast.error(error.value)
+      const msg = e.message
+      error.value = msg
+      toast.error(msg)
       return null
     } finally {
       loading.value = false
@@ -98,8 +102,9 @@ export function useSellProcess() {
       if (currentProcess.value?.messages) currentProcess.value.messages.push(msg)
       return msg
     } catch (e: any) {
-      error.value = e.message
-      toast.error(error.value)
+      const msg = e.message
+      error.value = msg
+      toast.error(msg)
       return null
     }
   }
@@ -115,8 +120,9 @@ export function useSellProcess() {
       if (currentProcess.value?.id === processId) currentProcess.value = updated
       return updated
     } catch (e: any) {
-      error.value = e.message
-      toast.error(error.value)
+      const msg = e.message
+      error.value = msg
+      toast.error(msg)
       return null
     }
   }
@@ -129,8 +135,9 @@ export function useSellProcess() {
       if (currentProcess.value?.messages) currentProcess.value.messages.push(msg)
       return msg
     } catch (e: any) {
-      error.value = e.message
-      toast.error(error.value)
+      const msg = e.message
+      error.value = msg
+      toast.error(msg)
       return null
     }
   }
@@ -146,8 +153,9 @@ export function useSellProcess() {
       if (currentProcess.value?.id === processId) currentProcess.value = updated
       return updated
     } catch (e: any) {
-      error.value = e.message
-      toast.error(error.value)
+      const msg = e.message
+      error.value = msg
+      toast.error(msg)
       return null
     }
   }
@@ -163,8 +171,9 @@ export function useSellProcess() {
       if (currentProcess.value?.id === processId) currentProcess.value = updated
       return updated
     } catch (e: any) {
-      error.value = e.message
-      toast.error(error.value)
+      const msg = e.message
+      error.value = msg
+      toast.error(msg)
       return null
     }
   }
