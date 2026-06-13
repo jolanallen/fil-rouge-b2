@@ -5,3 +5,4 @@ dist/
 coverage/
 *.tsbuildinfo
 src/**/*.d.ts
+.vite
