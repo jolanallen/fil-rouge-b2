@@ -64,6 +64,21 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/mentions-legales',
+    name: 'LegalNotice',
+    component: () => import('@/views/LegalNoticeView.vue')
+  },
+  {
+    path: '/rgpd',
+    name: 'RGPD',
+    component: () => import('@/views/RGPDView.vue')
+  },
+  {
+    path: '/cgv',
+    name: 'CGV',
+    component: () => import('@/views/CGVView.vue')
+  },
+  {
     path: '/:pathMatch(.*)*',
     redirect: '/'
   }
