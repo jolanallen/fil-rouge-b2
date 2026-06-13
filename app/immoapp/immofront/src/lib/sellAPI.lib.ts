@@ -360,6 +360,35 @@ export async function getHistory(propertyId: string): Promise<Array<{ id: string
   }
 }
 
+export async function getAgencies(): Promise<{ id: string; name: string; city: string }[]> {
+  try {
+    return await apiGet('/properties/agencies')
+  } catch (e: any) {
+    if (e?.message !== 'MOCK_NEEDS_HANDLER') throw e
+    return [
+      { id: '1', name: 'Y-Plaza Aix-en-Provence', city: 'Aix-en-Provence' },
+      { id: '2', name: 'Y-Plaza Paris', city: 'Paris' },
+      { id: '3', name: 'Y-Plaza Lyon', city: 'Lyon' },
+      { id: '4', name: 'Y-Plaza Marseille', city: 'Marseille' },
+      { id: '5', name: 'Y-Plaza Cannes', city: 'Cannes' },
+      { id: '6', name: 'Y-Plaza Bordeaux', city: 'Bordeaux' },
+    ]
+  }
+}
+
+export async function updateSellPropertyStatus(processId: string, status: string): Promise<Property> {
+  try {
+    return await apiPut<Property>(`/properties/${processId}/status`, { status })
+  } catch (e: any) {
+    if (e?.message !== 'MOCK_NEEDS_HANDLER') throw e
+    await mockDelay(200)
+    const prop = MOCK_PROPERTIES.find(p => p.id === processId)
+    if (!prop) throw new Error('Property not found')
+    prop.status = status as Property['status']
+    return { ...prop }
+  }
+}
+
 export async function updateProcessTags(processId: string, tags: string[]): Promise<Property> {
   try {
     return await apiPut<Property>(`/properties/${processId}`, { tags })

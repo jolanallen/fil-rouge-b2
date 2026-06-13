@@ -5,6 +5,7 @@ import { cdnUrl } from '@/lib/imageUrl.lib'
 import { useAuthStore } from '@/stores/authStore'
 import { useSellProcess } from '@/composable/useSellProcess'
 import { useScrollAnimation } from '@/composable/useScrollAnimation'
+import { getAgencies } from '@/lib/sellAPI.lib'
 import Button from '@/components/global/Button.vue'
 import Card from '@/components/global/Card.vue'
 import Badge from '@/components/global/Badge.vue'
@@ -13,8 +14,10 @@ import Spinner from '@/components/global/Spinner.vue'
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
-const { currentProcess, fetchProcessById, sendMessage, staffSendMessage, updateProperty, updateProcessTags, loading } = useSellProcess()
+const { currentProcess, fetchProcessById, sendMessage, staffSendMessage, updateProperty, updateProcessStatus, updateProcessTags, loading } = useSellProcess()
 useScrollAnimation()
+
+const agencies = ref<{ id: string; name: string; city: string }[]>([])
 
 const newMessage = ref('')
 const activeSection = ref<'details' | 'conversation' | 'history' | 'edit'>('details')
@@ -32,6 +35,7 @@ onMounted(async () => {
     router.push('/login')
     return
   }
+  agencies.value = await getAgencies()
   await fetchProcessById(processId)
 })
 
@@ -77,14 +81,7 @@ const statusVariants: Record<string, 'warning' | 'info' | 'success' | 'default' 
   cancelled: 'danger'
 }
 
-const AGENCY_OPTIONS = [
-  'Y-Plaza Aix-en-Provence',
-  'Y-Plaza Paris',
-  'Y-Plaza Lyon',
-  'Y-Plaza Marseille',
-  'Y-Plaza Cannes',
-  'Y-Plaza Bordeaux'
-]
+const AGENCY_OPTIONS = computed(() => agencies.value.map(a => a.name))
 
 const typeLabels: Record<string, string> = {
   appartement: 'Appartement',
@@ -162,11 +159,11 @@ async function saveEdit() {
   const updated = await updateProperty(currentProcess.value.id, {
     title: editForm.value.title,
     description: editForm.value.description,
-    estimatedPrice: editForm.value.estimatedPrice,
+    price: editForm.value.estimatedPrice,
     agency: editForm.value.agency,
     images: editForm.value.images,
     features: editForm.value.features,
-    energyClass: editForm.value.energyClass || undefined as any
+    energyClass: editForm.value.energyClass
   })
   editSaving.value = false
   if (updated) {
@@ -207,7 +204,7 @@ function removeFeature(index: number) {
 
 async function updatePropertyStatus(status: string) {
   if (!currentProcess.value) return
-  await updateProperty(currentProcess.value.id, { status: status as any })
+  await updateProcessStatus(currentProcess.value.id, status)
 }
 
 async function addTag() {

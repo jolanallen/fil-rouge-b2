@@ -135,6 +135,23 @@ export function useSellProcess() {
     }
   }
 
+  async function updateProcessStatus(processId: string, status: string) {
+    error.value = null
+    try {
+      const updated = await sellAPI.updateSellPropertyStatus(processId, status)
+      const idx = allProcesses.value.findIndex(p => p.id === processId)
+      if (idx >= 0) allProcesses.value[idx] = updated
+      const pIdx = processes.value.findIndex(p => p.id === processId)
+      if (pIdx >= 0) processes.value[pIdx] = updated
+      if (currentProcess.value?.id === processId) currentProcess.value = updated
+      return updated
+    } catch (e: any) {
+      error.value = e.message
+      toast.error(error.value)
+      return null
+    }
+  }
+
   async function updateProperty(processId: string, data: Record<string, any>) {
     error.value = null
     try {
@@ -156,6 +173,6 @@ export function useSellProcess() {
     processes, currentProcess, allProcesses, messages, history, loading, error,
     fetchUserProcesses, fetchAllProcesses, fetchProcessById,
     createSellProcess, assignStaff, sendMessage, staffSendMessage,
-    updateProcessTags, updateProperty
+    updateProcessTags, updateProcessStatus, updateProperty
   }
 }
