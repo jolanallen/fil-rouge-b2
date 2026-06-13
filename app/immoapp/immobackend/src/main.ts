@@ -12,7 +12,7 @@ async function bootstrap() {
   app.useBodyParser('json', { limit: '50mb' })
   app.setGlobalPrefix('api/v1')
   app.enableCors({
-    origin: ['http://localhost:5173', 'http://localhost:4173'],
+    origin: config.get<string[]>('app.corsOrigins'),
     credentials: true,
   })
   app.useGlobalPipes(
