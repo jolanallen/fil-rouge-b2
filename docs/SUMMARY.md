@@ -1,35 +1,22 @@
 # Y-Plaza — Documentation technique
 
-## Table des matières
+## 📂 Architecture Globale
+- [Sujet du Projet B2](SUJET_PROJET_B2.pdf)
+- [Rapport Final (Livrable)](../deliverables/RAPPORT_FINAL_YPLAZA.md)
 
-1. [Architecture générale](ARCHITECTURE.md)
-   - Vue d'ensemble du système
-   - Diagramme d'architecture
-   - Flux de données
-2. [Choix techniques](STACK.md)
-   - Pourquoi Python / FastAPI pour ImmoPredict
-   - Pourquoi NestJS / Node.js pour ImmoBackend
-   - Pourquoi Vue.js 3 pour ImmoFront
-   - Pourquoi MariaDB, Redis, TypeORM, class-validator
-3. [ImmoBackend](IMMOBACKEND.md)
-   - Structure du projet
-   - Modules et responsabilités
-   - Authentification et autorisation
-   - Base de données et migrations
-4. [ImmoFrontend](IMMOFRONT.md)
-   - Structure du projet
-   - Composants, vues et composables
-   - Gestion d'état (Pinia)
-   - Gestion des images et du CDN
-5. [ImmoPredict](IMMOPREDICT.md)
-   - Pipeline d'analyse
-   - Modèle de machine learning
-   - Streaming SSE en temps réel
-6. [Référence API](API.md)
-   - Endpoints immobackend
-   - Endpoints immopredict
-   - Formats de requête et réponse
-7. [Déploiement](DEPLOYMENT.md)
-   - Architecture Docker Compose actuelle
-   - Migration vers Kubernetes
-   - Variables d'environnement
+## 🏗️ Application
+- [Architecture générale](application/ARCHITECTURE.md)
+- [Architecture détaillée](application/ARCHITECTURE_DETAIL.md)
+- [Choix techniques (Stack)](application/STACK.md)
+- [Référence API](application/API.md)
+- [Documentation Backend](application/IMMOBACKEND.md)
+- [Documentation Frontend](application/IMMOFRONT.md)
+- [Documentation Predict (IA)](application/IMMOPREDICT.md)
+- [Guide de Déploiement](application/DEPLOYMENT.md)
+
+## 🛡️ Infrastructure & Sécurité
+- [Plan d'Adressage IP](infrastructure/PLAN_ADRESSAGE_IP.md)
+- [Politique de Sécurité (PSSI)](infrastructure/POLITIQUE_SECURITE.md)
+- [Matrice des Permissions AD](infrastructure/MATRICE_PERMISSIONS_AD.pdf)
+- [Gestion des Droits d'Accès](infrastructure/GESTION_DROITS_ACCES.pdf)
+- [Budget prévisionnel](infrastructure/BUDGET.md)
