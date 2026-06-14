@@ -1,9 +1,10 @@
 #!/bin/bash
 
 # Script de configuration automatique des fichiers .env pour Y-Plaza
+# Configuration : Déploiement sur IP 192.168.10.10 (Accès SI Local + Agences)
 # Auteur : Architecte Infrastructure & Sécurité
 
-echo "🚀 Configuration des environnements Y-Plaza..."
+echo "🚀 Configuration des environnements Y-Plaza pour le réseau local (192.168.10.10)..."
 
 # 1. Configuration pour ImmoPredict (Python/FastAPI)
 echo "📝 Génération de app/immopredict/.env"
@@ -55,15 +56,15 @@ LDAP_ATTR_EMAIL=mail
 # Google OAuth (À remplir manuellement)
 GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
 GOOGLE_CLIENT_SECRET=your-google-client-secret
-GOOGLE_CALLBACK_URL=http://localhost:3001/api/v1/auth/google/callback
+GOOGLE_CALLBACK_URL=http://192.168.10.10:3001/api/v1/auth/google/callback
 
-# Frontend URL (Docker Port mapping)
-FRONTEND_URL=http://localhost:3002
+# Frontend URL (Accessible depuis le SI local)
+FRONTEND_URL=http://192.168.10.10:3002
 
-# CORS
-CORS_ORIGINS=http://localhost:3002,http://localhost:5173,http://localhost:3000
+# CORS (Autorise le frontend sur l'IP du serveur)
+CORS_ORIGINS=http://192.168.10.10:3002,http://localhost:3002,http://localhost:5173
 
-# Immopredict Python API (Docker)
+# Immopredict Python API (Communication interne Docker)
 IMMOPREDICT_API_URL=http://immopredict:8000/api/v1
 EOF
 
@@ -73,16 +74,16 @@ cat <<EOF > app/immoapp/immofront/.env
 # Application
 VITE_APP_TITLE=Y-Plaza
 
-# Backend API (Accès côté navigateur)
-VITE_API_BASE_URL=http://localhost:3001/api/v1
+# Backend API (Accès depuis le navigateur des agences via IPsec)
+VITE_API_BASE_URL=http://192.168.10.10:3001/api/v1
 
 # CDN pour les images
-VITE_CDN_BASE_URL=http://localhost:3001
+VITE_CDN_BASE_URL=http://192.168.10.10:3001
 
 # Désactivation du mock en production
 VITE_USE_MOCK=false
 
-# Images de fond (Défaut Unsplash)
+# Images de fond
 VITE_BACKGROUND_IMAGES=https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=1920&q=85,https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1920&q=85
 
 # Google OAuth
@@ -98,5 +99,7 @@ COG_MILLESIME=2019-01-01
 ANNEES=2014,2015,2016,2017,2018,2019,2020
 EOF
 
-echo "✅ Tous les fichiers .env ont été générés avec succès."
-echo "💡 Note : N'oubliez pas de configurer vos clés Google OAuth si nécessaire."
+echo "✅ Configuration mise à jour pour l'IP 192.168.10.10."
+echo "🔄 Exécution du script..."
+chmod +x setup_env.sh
+./setup_env.sh
