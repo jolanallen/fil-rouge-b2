@@ -35,7 +35,7 @@ const successMessage = ref<string | null>(null)
 const departmentCode = computed(() => postalCode.value.slice(0, 2))
 
 const canAutoEstimate = computed(() =>
-  !!surface.value && surface.value > 0 && postalCode.value.length >= 2
+  !!surface.value && surface.value > 0 && postalCode.value.length >= 5
 )
 
 restoreFormData()
@@ -76,9 +76,10 @@ async function runEstimate() {
   estimationLoading.value = true
   formError.value = null
   try {
-    estimation.value = await estimatePrice(departmentCode.value, surface.value!, propertyType.value)
-  } catch {
+    estimation.value = await estimatePrice(postalCode.value, surface.value!, propertyType.value)
+  } catch (e: any) {
     estimation.value = null
+    formError.value = e?.message || 'Estimation indisponible pour ce département'
   } finally {
     estimationLoading.value = false
   }

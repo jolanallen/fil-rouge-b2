@@ -413,14 +413,15 @@ export async function updateSellProperty(processId: string, data: Record<string,
   }
 }
 
-export async function estimatePrice(department: string, surface: number, propertyType: string): Promise<{ pricePerM2: number; estimatedPrice: number }> {
+export async function estimatePrice(postalCode: string, surface: number, propertyType: string): Promise<{ pricePerM2: number; estimatedPrice: number }> {
   try {
-    const result = await apiGet<any>(`/analysis/estimate?department=${department}&surface=${surface}&type=${propertyType}`)
+    const result = await apiGet<any>(`/analysis/estimate?postalCode=${postalCode}&surface=${surface}&type=${propertyType}`)
     return { estimatedPrice: result.estimatedPrice, pricePerM2: result.estimatedPricePerM2 }
   } catch (e: any) {
     if (e?.message !== 'MOCK_NEEDS_HANDLER') throw e
     await mockDelay(300)
-    const deptPrices = MOCK_DEPARTMENT_PRICES[department] || [{ avgPricePerM2: 3500, city: 'Ville' }]
+    const dept = postalCode.slice(0, 2)
+    const deptPrices = MOCK_DEPARTMENT_PRICES[dept] || [{ avgPricePerM2: 3500, city: 'Ville' }]
     const typeMultiplier = propertyType === 'maison' ? 1.1 : propertyType === 'appartement' ? 1 : propertyType === 'local-commercial' ? 0.9 : 0.5
     const pricePerM2 = Math.round(deptPrices[0].avgPricePerM2 * typeMultiplier)
     return { pricePerM2, estimatedPrice: Math.round(pricePerM2 * surface) }
