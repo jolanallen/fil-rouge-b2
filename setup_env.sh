@@ -2,9 +2,10 @@
 
 # Script de configuration automatique des fichiers .env pour Y-Plaza
 # Configuration : Déploiement sur IP 192.168.10.10 (Accès SI Local + Agences)
+# Domaine AD : y.plaza.local
 # Auteur : Architecte Infrastructure & Sécurité
 
-echo "🚀 Configuration des environnements Y-Plaza pour le réseau local (192.168.10.10)..."
+echo "🚀 Configuration des environnements Y-Plaza pour le domaine y.plaza.local..."
 
 # 1. Configuration pour ImmoPredict (Python/FastAPI)
 echo "📝 Génération de app/immopredict/.env"
@@ -44,14 +45,15 @@ JWT_ACCESS_EXPIRES=15m
 JWT_REFRESH_EXPIRES=7d
 
 # LDAP / Active Directory (Siège Aix)
+# Domaine : y.plaza.local -> DC=y,DC=plaza,DC=local
 LDAP_URL=ldap://192.168.10.2:389
 LDAP_BASE_DN=DC=y,DC=plaza,DC=local
 LDAP_BIND_DN=CN=svc_auth,DC=y,DC=plaza,DC=local
-LDAP_BIND_PASSWORD=P@ssw0rd123!
+LDAP_BIND_PASSWORD=y-plaza-auth-pass
 LDAP_SEARCH_FILTER=(sAMAccountName={{username}})
-LDAP_ATTR_FIRSTNAME=svc_auth
-LDAP_ATTR_LASTNAME=svc_auth
-LDAP_ATTR_EMAIL=svc_auth@yplaza.local
+LDAP_ATTR_FIRSTNAME=givenName
+LDAP_ATTR_LASTNAME=sn
+LDAP_ATTR_EMAIL=mail
 
 # Google OAuth (À remplir manuellement)
 GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
@@ -99,9 +101,7 @@ COG_MILLESIME=2019-01-01
 ANNEES=2014,2015,2016,2017,2018,2019,2020
 EOF
 
-echo "✅ Configuration mise à jour pour l'IP 192.168.10.10."
+echo "✅ Configuration mise à jour pour le domaine y.plaza.local."
 echo "🔄 Exécution du script..."
 chmod +x setup_env.sh
 ./setup_env.sh
-
-
