@@ -46,7 +46,6 @@ export interface Property {
   longitude: number
   images: PropertyImage[]
   features: PropertyFeature[]
-  energyClass?: string
   dpe?: string
   pricePerM2: number
   createdAt: string

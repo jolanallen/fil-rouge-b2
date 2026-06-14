@@ -29,7 +29,7 @@ const MOCK_PROPERTIES: Property[] = [
       { id: 'f-4', name: 'Domotique', icon: 'smart' },
       { id: 'f-5', name: 'Climatisation réversible', icon: 'ac' }
     ],
-    energyClass: 'B',
+    dpe: 'B',
     pricePerM2: 4464,
     createdAt: '2025-03-15T10:00:00Z',
     updatedAt: '2025-05-10T14:00:00Z',
@@ -61,7 +61,7 @@ const MOCK_PROPERTIES: Property[] = [
       { id: 'f-8', name: 'Gardien', icon: 'security' },
       { id: 'f-9', name: 'Balcon filant', icon: 'balcony' }
     ],
-    energyClass: 'C',
+    dpe: 'C',
     pricePerM2: 7458,
     createdAt: '2025-04-01T09:00:00Z',
     updatedAt: '2025-05-12T11:00:00Z',
@@ -92,7 +92,7 @@ const MOCK_PROPERTIES: Property[] = [
       { id: 'f-12', name: 'Cave', icon: 'storage' },
       { id: 'f-13', name: 'Climatisation', icon: 'ac' }
     ],
-    energyClass: 'D',
+    dpe: 'D',
     pricePerM2: 3611,
     createdAt: '2025-02-20T08:00:00Z',
     updatedAt: '2025-05-08T16:00:00Z',
@@ -124,7 +124,7 @@ const MOCK_PROPERTIES: Property[] = [
       { id: 'f-16', name: 'Puits', icon: 'water' },
       { id: 'f-17', name: 'Terrasse 80m²', icon: 'terrace' }
     ],
-    energyClass: 'B',
+    dpe: 'B',
     pricePerM2: 4900,
     createdAt: '2025-01-10T10:00:00Z',
     updatedAt: '2025-05-01T09:00:00Z',
@@ -154,7 +154,7 @@ const MOCK_PROPERTIES: Property[] = [
       { id: 'f-19', name: 'Permis obtenu', icon: 'document' },
       { id: 'f-20', name: 'Viabilisé', icon: 'utilities' }
     ],
-    energyClass: 'A',
+    dpe: 'A',
     pricePerM2: 375,
     createdAt: '2025-03-01T08:00:00Z',
     updatedAt: '2025-04-28T12:00:00Z',
@@ -184,7 +184,7 @@ const MOCK_PROPERTIES: Property[] = [
       { id: 'f-22', name: 'Terrasse 25m²', icon: 'terrace' },
       { id: 'f-23', name: 'Cuisine équipée', icon: 'kitchen' }
     ],
-    energyClass: 'A',
+    dpe: 'A',
     pricePerM2: 6118,
     createdAt: '2025-04-15T11:00:00Z',
     updatedAt: '2025-05-13T15:00:00Z',
@@ -304,7 +304,7 @@ export async function createProperty(data: CreatePropertyDTO): Promise<Property>
       longitude: data.longitude || 0,
       images: [],
       features: [],
-      energyClass: 'A',
+      dpe: 'A',
       pricePerM2: data.price && data.surface ? Math.round(data.price / data.surface) : 0,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),

@@ -22,7 +22,7 @@ const agencies = ref<{ id: string; name: string; city: string }[]>([])
 const newMessage = ref('')
 const activeSection = ref<'details' | 'conversation' | 'history' | 'edit'>('details')
 
-const editForm = ref({ title: '', description: '', estimatedPrice: 0, agency: '', images: [] as string[], features: [] as string[], energyClass: '' })
+const editForm = ref({ title: '', description: '', estimatedPrice: 0, agency: '', images: [] as string[], features: [] as string[], dpe: '' })
 const editSaving = ref(false)
 const editSuccess = ref(false)
 const newTag = ref('')
@@ -120,7 +120,7 @@ function formatDate(date: string): string {
   return new Date(date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })
 }
 
-function dpeColorClass(energyClass: string): string {
+function dpeColorClass(dpe: string): string {
   const colors: Record<string, string> = {
     A: 'bg-emerald-500',
     B: 'bg-green-500',
@@ -130,7 +130,7 @@ function dpeColorClass(energyClass: string): string {
     F: 'bg-red-500',
     G: 'bg-red-700'
   }
-  return colors[energyClass] || 'bg-slate-400'
+  return colors[dpe] || 'bg-slate-400'
 }
 
 function formatShortDate(date: string): string {
@@ -146,7 +146,7 @@ function openEdit() {
     agency: currentProcess.value.agency,
     images: currentProcess.value.images.map(i => i.url),
     features: currentProcess.value.features.map(f => f.name),
-    energyClass: currentProcess.value.energyClass || ''
+    dpe: currentProcess.value.dpe || ''
   }
   editSuccess.value = false
   activeSection.value = 'edit'
@@ -163,7 +163,7 @@ async function saveEdit() {
     agency: editForm.value.agency,
     images: editForm.value.images,
     features: editForm.value.features,
-    energyClass: editForm.value.energyClass
+    dpe: editForm.value.dpe
   })
   editSaving.value = false
   if (updated) {
@@ -433,7 +433,7 @@ async function removeEditTag(tag: string) {
               </div>
               <div class="flex justify-between py-1.5 border-b border-slate-50">
                 <span class="text-slate-500">DPE</span>
-                <span v-if="currentProcess.energyClass" class="font-medium"><span :class="dpeColorClass(currentProcess.energyClass)" class="inline-flex items-center justify-center w-6 h-6 rounded text-xs font-bold text-white">{{ currentProcess.energyClass }}</span></span>
+                <span v-if="currentProcess.dpe" class="font-medium"><span :class="dpeColorClass(currentProcess.dpe)" class="inline-flex items-center justify-center w-6 h-6 rounded text-xs font-bold text-white">{{ currentProcess.dpe }}</span></span>
                 <span v-else class="text-slate-400 text-sm">Non renseigné</span>
               </div>
               <div class="flex justify-between py-1.5 border-b border-slate-50">
@@ -638,14 +638,14 @@ async function removeEditTag(tag: string) {
               <div>
                 <label class="block text-xs font-medium text-slate-500 mb-1">DPE (Diagnostic de Performance Énergétique)</label>
                 <select
-                  v-model="editForm.energyClass"
+                  v-model="editForm.dpe"
                   class="block w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-300"
                 >
                   <option value="">Non renseigné</option>
                   <option v-for="c in ['A','B','C','D','E','F','G']" :key="c" :value="c">{{ c }}</option>
                 </select>
-                <p v-if="editForm.energyClass" class="text-xs text-slate-400 mt-1">
-                  Classe <span :class="dpeColorClass(editForm.energyClass)" class="inline-flex items-center justify-center w-5 h-5 rounded text-[10px] font-bold text-white">{{ editForm.energyClass }}</span>
+                <p v-if="editForm.dpe" class="text-xs text-slate-400 mt-1">
+                  Classe <span :class="dpeColorClass(editForm.dpe)" class="inline-flex items-center justify-center w-5 h-5 rounded text-[10px] font-bold text-white">{{ editForm.dpe }}</span>
                 </p>
               </div>
 

@@ -66,7 +66,7 @@ const partners = ['Aix-en-Provence', 'Marseille', 'Paris', 'Lyon', 'Bordeaux', '
       </div>
 
       <!-- Stats integrated at bottom of hero -->
-      <div class="absolute bottom-0 left-0 right-0 z-20 px-4 pb-6 md:pb-8">
+      <div class="hidden md:block absolute bottom-0 left-0 right-0 z-20 px-4 pb-6 md:pb-8">
         <div class="max-w-7xl mx-auto">
           <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
             <StatsCard label="Biens vendus" value="2,847+" icon="chart" :trend="12" glass />

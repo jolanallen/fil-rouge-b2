@@ -236,7 +236,7 @@ function handleKeydown(e: KeyboardEvent) {
                 </div>
                 <div>
                   <p class="text-xs text-slate-400">DPE</p>
-                  <p class="text-sm font-semibold text-slate-900">{{ data.property.energyClass || 'N/A' }}</p>
+                  <p class="text-sm font-semibold text-slate-900">{{ data.property.dpe || 'N/A' }}</p>
                 </div>
                 <div>
                   <p class="text-xs text-slate-400">Agence</p>
