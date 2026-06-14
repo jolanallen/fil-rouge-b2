@@ -41,3 +41,28 @@ class AnalysisStatusEvent(BaseModel):
     current_city: str = ""
     message: str = ""
     department: str = ""
+
+
+class EstimatePriceRequest(BaseModel):
+    postal_code: str = Field(
+        ..., min_length=5, max_length=5, description="French postal code (e.g. 13100)"
+    )
+    surface: float = Field(..., gt=0, description="Surface area in m²")
+    type: str = Field(
+        ...,
+        description="Property type: appartement, maison, terrain, local-commercial",
+    )
+
+
+class EstimatePriceResponse(BaseModel):
+    postal_code: str
+    type: str
+    surface: float
+    estimated_price: float
+    estimated_price_per_m2: float
+    confidence_score: float
+    transaction_count: int
+    department: str = ""
+    city: str = ""
+    model_slope: float = 0.0
+    model_intercept: float = 0.0

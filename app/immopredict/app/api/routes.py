@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 from datetime import datetime, timezone
 
+import pandas as pd
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from sqlalchemy import select
@@ -10,12 +11,16 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.api.dependencies import get_db, get_session_factory_dependency
 from app.models.analysis_task import AnalysisTask
+from app.models.property_transaction import PropertyTransaction
 from app.models.sector_analysis import SectorAnalysis
 from app.schemas.analysis import (
     AnalysisStartRequest,
     AnalysisTaskResponse,
+    EstimatePriceRequest,
+    EstimatePriceResponse,
     SectorAnalysisResponse,
 )
+from app.ml.predictor import PricePredictor
 from app.utils.logging import get_logger
 from app.utils.sse import event_stream
 from app.workers.analysis_worker import AnalysisWorker
@@ -161,6 +166,86 @@ async def get_analysis_results(
         )
         for a in analyses
     ]
+
+
+TYPE_MAP = {
+    "appartement": "Appartement",
+    "maison": "Maison",
+    "terrain": "Terrain",
+    "local-commercial": "Local",
+}
+
+
+@router.post("/analysis/estimate", response_model=EstimatePriceResponse)
+async def estimate_price(
+    body: EstimatePriceRequest,
+    db: AsyncSession = Depends(get_db),
+) -> EstimatePriceResponse:
+    mapped_type = TYPE_MAP.get(body.type, body.type)
+    department = body.postal_code[:2]
+
+    async def fetch_transactions(postal_code: str | None = None):
+        clause = PropertyTransaction.property_type.ilike(f"{mapped_type}%") & \
+            PropertyTransaction.price.isnot(None) & \
+            PropertyTransaction.surface.isnot(None) & \
+            PropertyTransaction.price_per_m2.isnot(None)
+        if postal_code:
+            clause &= PropertyTransaction.postal_code == postal_code
+        else:
+            clause &= PropertyTransaction.department == department
+        result = await db.execute(select(PropertyTransaction).where(clause))
+        return result.scalars().all()
+
+    transactions = await fetch_transactions(body.postal_code)
+
+    if len(transactions) < 5:
+        transactions = await fetch_transactions(None)
+
+    if not transactions:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Aucune donnée DVF pour le code postal {body.postal_code} ({department}) avec le type {body.type}",
+        )
+
+    city = transactions[0].city or ""
+
+    df = pd.DataFrame(
+        [
+            {
+                "mutation_date": t.mutation_date,
+                "price": t.price,
+                "surface": t.surface,
+                "price_per_m2": t.price_per_m2,
+            }
+            for t in transactions
+        ]
+    )
+
+    predictor = PricePredictor()
+    params = predictor.train(df)
+    predicted_price_per_m2 = predictor.predict_next_year(df)
+
+    if predicted_price_per_m2 is None:
+        predicted_price_per_m2 = float(df["price_per_m2"].mean())
+        confidence = 0.5
+    else:
+        confidence = min(abs(params.get("score", 0)) + 0.3, 0.95)
+
+    estimated_price = predicted_price_per_m2 * body.surface
+
+    return EstimatePriceResponse(
+        postal_code=body.postal_code,
+        type=body.type,
+        surface=body.surface,
+        estimated_price=round(estimated_price, 2),
+        estimated_price_per_m2=round(predicted_price_per_m2, 2),
+        confidence_score=round(confidence, 2),
+        transaction_count=len(transactions),
+        department=department,
+        city=city,
+        model_slope=round(params["slope"], 4),
+        model_intercept=round(params["intercept"], 4),
+    )
 
 
 @router.get("/health")
