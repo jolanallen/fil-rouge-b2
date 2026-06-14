@@ -8,7 +8,7 @@ RUN npm run build
 
 FROM node:22-alpine AS dev
 WORKDIR /app
-ENV NODE_ENV=dev
+ENV NODE_ENV=development
 RUN apk add --no-cache tini
 COPY --from=build /app/package*.json ./
 RUN npm ci --omit=dev && npm cache clean --force
