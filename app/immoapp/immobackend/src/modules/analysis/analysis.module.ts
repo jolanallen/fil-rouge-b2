@@ -5,10 +5,9 @@ import { AnalysisService } from './analysis.service'
 import { AnalysisProxyService } from './analysis-proxy.service'
 import { SectorAnalysis } from './entities/sector-analysis.entity'
 import { AnalysisTask } from './entities/analysis-task.entity'
-import { PropertyTransaction } from './entities/property-transaction.entity'
 
 @Module({
-  imports: [TypeOrmModule.forFeature([SectorAnalysis, AnalysisTask, PropertyTransaction])],
+  imports: [TypeOrmModule.forFeature([SectorAnalysis, AnalysisTask])],
   controllers: [AnalysisController],
   providers: [AnalysisService, AnalysisProxyService],
 })

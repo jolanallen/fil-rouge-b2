@@ -23,8 +23,6 @@ export class SectorAnalysis {
   @Column({ name: 'transaction_count', nullable: true })
   transactionCount!: number
 
-  @Column({ name: 'avg_price', type: 'decimal', precision: 10, scale: 2, nullable: true })
-  avgPrice!: number
 
   @Column({ name: 'yearly_growth_percent', type: 'decimal', precision: 6, scale: 3, nullable: true })
   yearlyGrowthPercent!: number

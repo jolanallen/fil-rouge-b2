@@ -20,12 +20,6 @@ export class AnalysisProxyService {
     }
   }
 
-  async getTaskStatus(taskId: number): Promise<{ status: string; progress?: number; message?: string; current_city?: string }> {
-    const res = await fetch(`${this.apiUrl}/analysis/task/${taskId}`)
-    if (!res.ok) throw new Error(`immopredict task-status failed (${res.status})`)
-    return res.json()
-  }
-
   async startAnalysis(departmentCode: string, year?: number): Promise<{ task_id: number }> {
     const res = await fetch(`${this.apiUrl}/analysis/start`, {
       method: 'POST',
@@ -56,12 +50,6 @@ export class AnalysisProxyService {
       estimatedPricePerM2: Math.round(estimatedPricePerM2),
       confidenceScore: 0.85,
     }
-  }
-
-  async getResults(department: string): Promise<Record<string, unknown>[]> {
-    const res = await fetch(`${this.apiUrl}/analysis/results/${department}`)
-    if (!res.ok) throw new Error(`immopredict results failed (${res.status})`)
-    return res.json()
   }
 
   connectToTaskSSE(taskId: number): Observable<SSEMessage> {

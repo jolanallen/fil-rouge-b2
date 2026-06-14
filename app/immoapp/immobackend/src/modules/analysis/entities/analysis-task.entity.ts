@@ -14,9 +14,6 @@ export class AnalysisTask {
   @Column({ type: 'float', default: 0 })
   progress!: number
 
-  @Column({ name: 'python_task_id', nullable: true })
-  pythonTaskId!: number
-
   @Column({ name: 'current_city', nullable: true })
   currentCity!: string
 
