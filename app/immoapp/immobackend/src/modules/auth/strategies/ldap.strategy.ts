@@ -28,7 +28,13 @@ export class LdapStrategy implements OnModuleInit {
 
   async onModuleInit() {
     this.logger.log(`🔍 Checking LDAP connection to ${this.url}...`)
+    
+    // Create client but immediately handle error event to prevent process crash
     const client = ldap.createClient({ url: this.url })
+    client.on('error', (err) => {
+      // Catch initial connection errors (ECONNREFUSED, etc.)
+      this.logger.warn(`⚠️ LDAP connection error (on 'error' event): ${err.message}`)
+    })
 
     try {
       await this.bindServiceAccount(client)
@@ -50,6 +56,9 @@ export class LdapStrategy implements OnModuleInit {
     email?: string
   } | null> {
     const client = ldap.createClient({ url: this.url })
+    client.on('error', (err) => {
+      this.logger.error(`LDAP Client Error: ${err.message}`)
+    })
 
     try {
       await this.bindServiceAccount(client)

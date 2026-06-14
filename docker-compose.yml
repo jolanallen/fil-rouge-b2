@@ -49,18 +49,8 @@ services:
     build:
       context: ./app/immoapp/immobackend
       dockerfile: Dockerfile
-    environment:
-      NODE_ENV: development
-      DB_HOST: mariadb
-      DB_PORT: 3306
-      DB_USER: immopredict
-      DB_PASSWORD: immopredict
-      DB_NAME: immoapp
-      REDIS_HOST: yplaza-redis
-      REDIS_PORT: 6379
-      JWT_SECRET: change-me-in-production
-      IMMOPREDICT_API_URL: http://immopredict:8000/api/v1
-      CORS_ORIGINS: http://localhost:3002,http://localhost:5173,http://localhost:4173
+    env_file:
+      - ./app/immoapp/immobackend/.env
     ports:
       - '3001:3001'
     depends_on:
@@ -75,8 +65,8 @@ services:
       context: ./app/immoapp/immofront
       dockerfile: Dockerfile
       args:
-        VITE_API_BASE_URL: http://localhost:3001/api/v1
-        VITE_CDN_BASE_URL: http://localhost:3001
+        VITE_API_BASE_URL: http://192.168.10.10:3001/api/v1
+        VITE_CDN_BASE_URL: http://192.168.10.10:3001
     ports:
       - '3002:80'
     depends_on:
