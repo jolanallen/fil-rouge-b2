@@ -65,5 +65,5 @@ export class CreatePropertyDto {
 
   @IsOptional()
   @IsString()
-  energyClass?: string
+  dpe?: string
 }

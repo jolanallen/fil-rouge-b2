@@ -46,10 +46,7 @@ export class Property {
   @Column({ type: 'decimal', precision: 10, scale: 7, nullable: true })
   longitude!: number | null
 
-  @Column({ name: 'energy_class', type: 'varchar', nullable: true, length: 1 })
-  energyClass!: string | null
-
-  @Column({ type: 'varchar', nullable: true, length: 20 })
+  @Column({ type: 'varchar', nullable: true, length: 1 })
   dpe!: string | null
 
   @Column({ name: 'price_per_m2', type: 'decimal', precision: 10, scale: 2, nullable: true })

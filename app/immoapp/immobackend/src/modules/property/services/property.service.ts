@@ -180,7 +180,7 @@ export class PropertyService {
     if (dto.surface !== undefined) property.surface = dto.surface
     if (dto.rooms !== undefined) property.rooms = dto.rooms
     if (dto.agency !== undefined) property.agency = dto.agency
-    if (dto.energyClass !== undefined) property.energyClass = dto.energyClass
+    if (dto.dpe !== undefined) property.dpe = dto.dpe
 
     const priceChanged = dto.price !== undefined && Number(dto.price) !== Number(property.price)
     if (dto.price !== undefined) property.price = dto.price
