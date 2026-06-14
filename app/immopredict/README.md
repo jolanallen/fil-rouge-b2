@@ -1,56 +1,112 @@
-# Services Immopredict 
-Analyse et prédiction linéaire des marchés immobiliers en France sur la base des données de Data.gouv.fr (DVF).
+# Immopredict
 
----
-Collaborateurs : Mir Mahan, Loan Mata, Allen Jolan
-Année : 2025/2026
+Analyse et prédiction linéaire des marchés immobiliers en France sur la base des données DVF (Demande de Valeur Foncière) de Data.gouv.fr.
 
----
+## Stack Technique
 
-## 🚀 Introduction
-`immopredict` est un service de calcul de tendances immobilières. Il récupère les données de ventes réelles (DVF), effectue une **régression linéaire manuelle** ($y = ax + b$) pour corréler la surface au prix, et stocke les résultats dans une base **Redis**.
+- **Python 3.12** / **FastAPI**
+- **SQLAlchemy** (async) + **Alembic**
+- **MariaDB**
+- **Pandas** + **scikit-learn** (LinearRegression)
+- **Server-Sent Events** (SSE) pour le streaming temps réel
+- **Docker** / **docker-compose**
 
-Les services tiers peuvent ensuite accéder directement aux résultats d'analyse dans Redis sans passer par l'API pour la lecture.
+## Architecture
 
-## 🏗️ Architecture & Principes
-Le projet respecte les principes **SOLID** et utilise l'**Injection de Dépendances** :
-- **Interfaces (`src/core/interfaces.py`)** : Définition des contrats pour le stockage, les sources de données et les prédicteurs.
-- **Infrastructure (`src/core/database.py`)** : Implémentation Redis pour la persistance des statistiques.
-- **Domaine/Logique (`src/core/processing.py`)** : 
-    - `ImmoGouvDataSource` : Récupération des données DVF via API.
-    - `SimpleLinearPredictor` : Calcul mathématique de la pente ($a$) et de l'ordonnée à l'origine ($b$) sans bibliothèques d'IA.
-
-## 📡 API REST (Flask)
-L'API expose un seul point d'entrée pour déclencher une analyse :
-
-### `POST /api/v1/analyse`
-Déclenche la récupération des données pour une zone et calcule les paramètres de prédiction.
-- **Body** : `{"code_postal": "75001"}`
-- **Réponse** : Les paramètres `slope` ($a$) et `intercept` ($b$).
-- **Effet de bord** : Enregistre le résultat dans Redis sous la clé `market:{code_postal}`.
-
-## 🛠️ Stack Technique
-- **Backend** : Flask (Python)
-- **Traitement de données** : Polars
-- **Stockage** : Redis
-- **Requêtes HTTP** : Requests
-
-## 📊 Schéma de flux
-```mermaid
-    flowchart TD
-        classDef external fill:#e2e2e2,stroke:#333,stroke-width:2px,color:#000;
-        classDef worker fill:#3776ab,stroke:#333,stroke-width:2px,color:#fff;
-        classDef db fill:#f29111,stroke:#333,stroke-width:2px,color:#fff;
-        classDef api fill:#68a063,stroke:#333,stroke-width:2px,color:#fff;
-        classDef consumer fill:#4fc08d,stroke:#333,stroke-width:2px,color:#fff;
-
-        datagouv(("🌐 Data.gouv (DVF API)")):::external
-        immoapi("🚀 Flask API<br>(POST /analyse)"):::api
-        redisdb[("📦 Redis DB<br>(Key-Value Store)")]:::db
-        immoanalyzer("📊 Application Tierce<br>(Lecture directe)"):::consumer
-
-        immoapi -->|1. Fetch Data| datagouv
-        immoapi -->|2. Manual Linear Regression| immoapi
-        immoapi -->|3. Save Results| redisdb
-        immoanalyzer -->|4. Direct Access| redisdb
 ```
+app/immopredict/
+├── app/
+│   ├── main.py              # Point d'entrée FastAPI
+│   ├── config.py            # Configuration (variables d'environnement)
+│   ├── api/
+│   │   ├── routes.py        # Endpoints REST
+│   │   └── dependencies.py  # Dépendances (DB session)
+│   ├── services/
+│   │   ├── dvf_service.py   # Intégration API DVF
+│   │   └── cleaning_service.py  # Nettoyage des données
+│   ├── models/              # Modèles SQLAlchemy
+│   ├── schemas/             # Schémas Pydantic
+│   ├── database/            # Connexion et session DB
+│   ├── workers/
+│   │   └── analysis_worker.py  # Worker asynchrone d'analyse
+│   ├── ml/
+│   │   └── predictor.py     # Pipeline ML (régression linéaire)
+│   └── utils/
+│       ├── logging.py       # Logging structuré
+│       └── sse.py           # Helper SSE
+├── alembic/                 # Migrations
+├── DOCKERFILE
+├── docker-compose.yml
+└── requirements.txt
+```
+
+## Démarrage Rapide
+
+### Prérequis
+
+- Docker & Docker Compose
+
+### Lancer l'application
+
+```bash
+docker compose up --build
+```
+
+L'API sera disponible sur `http://localhost:8000`.
+
+### Appliquer les migrations
+
+```bash
+docker compose exec api alembic upgrade head
+```
+
+## Endpoints API
+
+| Méthode | Path | Description |
+|---------|------|-------------|
+| POST | `/api/v1/analysis/start` | Lancer une analyse départementale |
+| GET | `/api/v1/analysis/task/{task_id}` | Statut d'une tâche |
+| GET | `/api/v1/analysis/stream/{task_id}` | SSE (streaming temps réel) |
+| GET | `/api/v1/analysis/results/{department}` | Résultats d'analyse |
+| GET | `/api/v1/health` | Health check |
+
+### Exemple : Lancer une analyse
+
+```bash
+curl -X POST http://localhost:8000/api/v1/analysis/start \
+  -H "Content-Type: application/json" \
+  -d '{"department_code": "75"}'
+```
+
+### Exemple : Stream SSE
+
+```bash
+curl -N http://localhost:8000/api/v1/analysis/stream/1
+```
+
+## Modèles de Données
+
+### PropertyTransaction
+- `id`, `mutation_date`, `price`, `surface`, `price_per_m2`
+- `property_type`, `city`, `postal_code`, `department`
+- `latitude`, `longitude`
+
+### SectorAnalysis
+- `city`, `sector`, `department`
+- `avg_price_m2`, `median_price_m2`, `transaction_count`
+- `yearly_growth_percent`, `predicted_price_next_year`
+- `model_slope`, `model_intercept`
+
+### AnalysisTask
+- `department`, `status`, `progress`
+- `current_city`, `message`, `started_at`, `completed_at`
+
+## Pipeline ML
+
+1. Récupération des données DVF via API Data.gouv.fr
+2. Nettoyage : dates, valeurs manquantes, coordonnées invalides, doublons
+3. Calcul du prix au m²
+4. Agrégation par ville / secteur postal
+5. Régression linéaire (scikit-learn) sur `year` → `price_per_m2`
+6. Prédiction du prix au m² pour l'année suivante
+7. Calcul de la croissance annuelle en %

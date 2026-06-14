@@ -1,41 +1,39 @@
 services:
-  immoapp:
-    build:
-      context: .
-      dockerfile: DOCKERFILE
-      target: prod
-    container_name: immoapp
+  mariadb:
+    image: mariadb:11
+    container_name: immopredict-db
     environment:
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - IMMOPREDICT_API_HOST=immopredict-api
-      - IMMOPREDICT_API_PORT=5000
+      MARIADB_ROOT_PASSWORD: rootpass
+      MARIADB_DATABASE: immoapp
+      MARIADB_USER: immopredict
+      MARIADB_PASSWORD: immopredict
     ports:
-      - "8080:8080" 
-    depends_on:
-      - redis
-      - immopredict-api
-    restart: on-failure
+      - '3307:3306'
+    volumes:
+      - mariadb_data:/var/lib/mysql
+      - ./init-dbs.sql:/docker-entrypoint-initdb.d/init-dbs.sql
+    healthcheck:
+      test: ['CMD', 'healthcheck.sh', '--connect', '--innodb_initialized']
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  redis:
-    image: redis:alpine
-    container_name: immopredict-redis
-    ports:
-      - "6379:6379"
-    restart: always
-
-  immopredict-api:
+  api:
     build:
       context: .
       dockerfile: DOCKERFILE
       target: prod
     container_name: immopredict-api
     environment:
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - FLASK_APP=src/api/app.py
+      DATABASE_URL: mysql+pymysql://immopredict:immopredict@mariadb:3306/immoapp
+      DVF_API_BASE_URL: https://files.data.gouv.fr/geo-dvf/latest/csv
+      LOG_LEVEL: INFO
     ports:
-      - "5000:5000"
+      - '8000:8000'
     depends_on:
-      - redis
+      mariadb:
+        condition: service_healthy
     restart: on-failure
+
+volumes:
+  mariadb_data:
