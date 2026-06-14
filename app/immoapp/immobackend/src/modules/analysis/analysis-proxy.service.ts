@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, HttpException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { Observable } from 'rxjs'
 
@@ -33,22 +33,27 @@ export class AnalysisProxyService {
     return res.json()
   }
 
-  async estimatePrice(department: string, surface: number, type: string): Promise<Record<string, unknown>> {
-    const typeMultiplier: Record<string, number> = {
-      appartement: 1.0,
-      maison: 0.95,
-      terrain: 0.4,
-      'local-commercial': 0.85,
+  async estimatePrice(postalCode: string, surface: number, type: string): Promise<Record<string, unknown>> {
+    const res = await fetch(`${this.apiUrl}/analysis/estimate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ postal_code: postalCode, surface, type }),
+    })
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({ detail: `HTTP ${res.status}` }))
+      throw new HttpException(body.detail || 'Estimation non disponible', res.status)
     }
-    const base = typeMultiplier[type] ?? 0.9
-    const estimatedPricePerM2 = base * (department === '75' ? 10500 : department === '33' ? 4800 : department === '69' ? 5500 : department === '13' ? 4500 : department === '06' ? 6000 : department === '31' ? 4000 : 3500)
+    const data = await res.json() as Record<string, unknown>
     return {
-      department,
-      type,
-      surface,
-      estimatedPrice: Math.round(surface * estimatedPricePerM2),
-      estimatedPricePerM2: Math.round(estimatedPricePerM2),
-      confidenceScore: 0.85,
+      department: data.department,
+      postalCode: data.postal_code,
+      city: data.city,
+      type: data.type,
+      surface: data.surface,
+      estimatedPrice: data.estimated_price,
+      estimatedPricePerM2: data.estimated_price_per_m2,
+      confidenceScore: data.confidence_score,
+      transactionCount: data.transaction_count,
     }
   }
 

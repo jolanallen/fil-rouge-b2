@@ -35,8 +35,8 @@ export class AnalysisService {
     return task
   }
 
-  async estimatePrice(department: string, surface: number, type: string) {
-    return this.proxy.estimatePrice(department, surface, type)
+  async estimatePrice(postalCode: string, surface: number, type: string) {
+    return this.proxy.estimatePrice(postalCode, surface, type)
   }
 
   async getResults(department: string) {

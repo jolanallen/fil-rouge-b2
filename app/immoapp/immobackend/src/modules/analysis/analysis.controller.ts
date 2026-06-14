@@ -33,7 +33,7 @@ export class AnalysisController {
   @Public()
   @Get('estimate')
   estimate(@Query() dto: EstimatePriceDto) {
-    return this.analysisService.estimatePrice(dto.department, dto.surface, dto.type)
+    return this.analysisService.estimatePrice(dto.postalCode, dto.surface, dto.type)
   }
 
   @SkipThrottle()

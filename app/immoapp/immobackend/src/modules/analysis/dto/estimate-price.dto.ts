@@ -1,10 +1,10 @@
-import { IsString, IsNumber, IsOptional, Length } from 'class-validator'
+import { IsString, IsNumber, Length } from 'class-validator'
 import { Type } from 'class-transformer'
 
 export class EstimatePriceDto {
   @IsString()
-  @Length(2, 3)
-  department!: string
+  @Length(5, 5)
+  postalCode!: string
 
   @Type(() => Number)
   @IsNumber()
