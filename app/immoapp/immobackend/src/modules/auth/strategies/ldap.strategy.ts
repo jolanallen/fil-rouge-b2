@@ -1,9 +1,10 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, OnModuleInit, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import * as ldap from 'ldapjs'
 
 @Injectable()
-export class LdapStrategy {
+export class LdapStrategy implements OnModuleInit {
+  private readonly logger = new Logger(LdapStrategy.name)
   private readonly url: string
   private readonly baseDn: string
   private readonly bindDn: string
@@ -23,6 +24,20 @@ export class LdapStrategy {
     this.attrFirstName = config.get<string>('ldap.attrFirstName') || 'givenName'
     this.attrLastName = config.get<string>('ldap.attrLastName') || 'sn'
     this.attrEmail = config.get<string>('ldap.attrEmail') || 'mail'
+  }
+
+  async onModuleInit() {
+    this.logger.log(`🔍 Checking LDAP connection to ${this.url}...`)
+    const client = ldap.createClient({ url: this.url })
+
+    try {
+      await this.bindServiceAccount(client)
+      this.logger.log('✅ LDAP connection successful (Service Account bound)')
+    } catch (error) {
+      this.logger.error(`❌ LDAP connection failed: ${error.message}`)
+    } finally {
+      client.destroy()
+    }
   }
 
   async authenticate(

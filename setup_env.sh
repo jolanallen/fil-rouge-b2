@@ -45,13 +45,13 @@ JWT_REFRESH_EXPIRES=7d
 
 # LDAP / Active Directory (Siège Aix)
 LDAP_URL=ldap://192.168.10.2:389
-LDAP_BASE_DN=DC=y-plaza,DC=local
-LDAP_BIND_DN=CN=svc_auth,OU=Groups,DC=y-plaza,DC=local
-LDAP_BIND_PASSWORD=y-plaza-auth-pass
+LDAP_BASE_DN=DC=y,DC=plaza,DC=local
+LDAP_BIND_DN=CN=svc_auth,DC=y,DC=plaza,DC=local
+LDAP_BIND_PASSWORD=P@ssw0rd123!
 LDAP_SEARCH_FILTER=(sAMAccountName={{username}})
-LDAP_ATTR_FIRSTNAME=givenName
-LDAP_ATTR_LASTNAME=sn
-LDAP_ATTR_EMAIL=mail
+LDAP_ATTR_FIRSTNAME=svc_auth
+LDAP_ATTR_LASTNAME=svc_auth
+LDAP_ATTR_EMAIL=svc_auth@yplaza.local
 
 # Google OAuth (À remplir manuellement)
 GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
@@ -103,3 +103,5 @@ echo "✅ Configuration mise à jour pour l'IP 192.168.10.10."
 echo "🔄 Exécution du script..."
 chmod +x setup_env.sh
 ./setup_env.sh
+
+
