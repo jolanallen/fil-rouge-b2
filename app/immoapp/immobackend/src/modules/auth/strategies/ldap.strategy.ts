@@ -1,9 +1,10 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, OnModuleInit, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import * as ldap from 'ldapjs'
 
 @Injectable()
-export class LdapStrategy {
+export class LdapStrategy implements OnModuleInit {
+  private readonly logger = new Logger(LdapStrategy.name)
   private readonly url: string
   private readonly baseDn: string
   private readonly bindDn: string
@@ -25,6 +26,26 @@ export class LdapStrategy {
     this.attrEmail = config.get<string>('ldap.attrEmail') || 'mail'
   }
 
+  async onModuleInit() {
+    this.logger.log(`🔍 Checking LDAP connection to ${this.url}...`)
+    
+    // Create client but immediately handle error event to prevent process crash
+    const client = ldap.createClient({ url: this.url })
+    client.on('error', (err) => {
+      // Catch initial connection errors (ECONNREFUSED, etc.)
+      this.logger.warn(`⚠️ LDAP connection error (on 'error' event): ${err.message}`)
+    })
+
+    try {
+      await this.bindServiceAccount(client)
+      this.logger.log('✅ LDAP connection successful (Service Account bound)')
+    } catch (error) {
+      this.logger.error(`❌ LDAP connection failed: ${error.message}`)
+    } finally {
+      client.destroy()
+    }
+  }
+
   async authenticate(
     username: string,
     password: string,
@@ -35,6 +56,9 @@ export class LdapStrategy {
     email?: string
   } | null> {
     const client = ldap.createClient({ url: this.url })
+    client.on('error', (err) => {
+      this.logger.error(`LDAP Client Error: ${err.message}`)
+    })
 
     try {
       await this.bindServiceAccount(client)
