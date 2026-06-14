@@ -4,7 +4,6 @@ export interface SectorAnalysis {
   city: string
   postalCode: string
   transactionCount: number
-  avgPrice: number
   avgPricePerM2: number
   medianPrice: number
   minPrice: number
@@ -34,7 +33,6 @@ export interface AnalysisResult {
   departmentSummary: {
     departmentCode: string
     totalTransactions: number
-    avgPrice: number
     avgPricePerM2: number
     predictedAvgPriceNextYear: number
     predictedAvgPricePerM2NextYear: number

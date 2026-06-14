@@ -102,12 +102,8 @@ function analyze() {
   runAnalysis({ departmentCode: selectedDept.value })
 }
 
-function formatPrice(p: number) {
-  return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(p)
-}
-
 function formatCompact(p: number) {
-  return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', notation: 'compact', maximumFractionDigits: 0 }).format(p)
+  return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', notation: 'compact', maximumFractionDigits: 2 }).format(p)
 }
 
 function formatGrowth(r: number) {
@@ -188,14 +184,10 @@ function formatGrowth(r: number) {
       </div>
 
       <template v-if="result">
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-10 mt-8">
+        <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-10 mt-8">
           <Card padding="md" class="text-center reveal">
             <p class="text-xs text-slate-500 mb-1">Transactions</p>
             <p class="text-xl font-bold text-slate-900">{{ result.departmentSummary.totalTransactions.toLocaleString('fr-FR') }}</p>
-          </Card>
-          <Card padding="md" class="text-center reveal">
-            <p class="text-xs text-slate-500 mb-1">Prix Moyen</p>
-            <p class="text-lg font-bold text-slate-900">{{ formatCompact(result.departmentSummary.avgPrice) }}</p>
           </Card>
           <Card padding="md" class="text-center reveal">
             <p class="text-xs text-slate-500 mb-1">Prix/m² Moyen</p>
@@ -244,10 +236,6 @@ function formatGrowth(r: number) {
                 <div>
                   <p class="text-xs text-slate-400">Transactions</p>
                   <p class="text-lg font-bold text-slate-900">{{ sector.transactionCount.toLocaleString('fr-FR') }}</p>
-                </div>
-                <div>
-                  <p class="text-xs text-slate-400">Prix moyen</p>
-                  <p class="text-lg font-bold text-slate-900">{{ formatCompact(sector.avgPrice) }}</p>
                 </div>
                 <div>
                   <p class="text-xs text-slate-400">Prix/m²</p>

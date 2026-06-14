@@ -9,7 +9,6 @@ const MOCK_SECTORS: SectorAnalysis[] = [
     city: 'Aix-en-Provence',
     postalCode: '13100',
     transactionCount: 1247,
-    avgPrice: 485000,
     avgPricePerM2: 4235,
     medianPrice: 398000,
     minPrice: 85000,
@@ -28,7 +27,6 @@ const MOCK_SECTORS: SectorAnalysis[] = [
     city: 'Marseille',
     postalCode: '13001',
     transactionCount: 3452,
-    avgPrice: 325000,
     avgPricePerM2: 3650,
     medianPrice: 275000,
     minPrice: 55000,
@@ -47,7 +45,6 @@ const MOCK_SECTORS: SectorAnalysis[] = [
     city: 'Paris',
     postalCode: '75016',
     transactionCount: 5231,
-    avgPrice: 920000,
     avgPricePerM2: 10250,
     medianPrice: 780000,
     minPrice: 180000,
@@ -66,7 +63,6 @@ const MOCK_SECTORS: SectorAnalysis[] = [
     city: 'Nice',
     postalCode: '06000',
     transactionCount: 2890,
-    avgPrice: 450000,
     avgPricePerM2: 5200,
     medianPrice: 365000,
     minPrice: 95000,
@@ -85,7 +81,6 @@ const MOCK_SECTORS: SectorAnalysis[] = [
     city: 'Bordeaux',
     postalCode: '33000',
     transactionCount: 2150,
-    avgPrice: 380000,
     avgPricePerM2: 4800,
     medianPrice: 320000,
     minPrice: 75000,
@@ -146,7 +141,6 @@ function toSector(raw: any): SectorAnalysis {
     city,
     postalCode: raw.postalCode ?? raw.postal_code ?? raw.code_postal ?? '',
     transactionCount: Number(raw.transactionCount ?? raw.transaction_count ?? raw.nb_transactions ?? 0),
-    avgPrice: Number(raw.avgPrice ?? raw.avg_price ?? raw.prix_moyen ?? 0),
     avgPricePerM2: Number(raw.avgPricePerM2 ?? raw.avgPriceM2 ?? raw.avg_price_m2 ?? raw.prix_m2_moyen ?? 0),
     medianPrice: Number(raw.medianPrice ?? raw.medianPriceM2 ?? raw.median_price_m2 ?? 0),
     minPrice: Number(raw.minPrice ?? raw.min_price ?? 0),
@@ -171,7 +165,6 @@ function buildResult(department: string, sectors: SectorAnalysis[]): AnalysisRes
   }
   const uniqueSectors = Array.from(cityMap.values()).sort((a, b) => b.transactionCount - a.transactionCount)
   const len = uniqueSectors.length || 1
-  const avgPrice = Math.round(uniqueSectors.reduce((a, s) => a + s.avgPrice, 0) / len)
   const avgPm2 = Math.round(uniqueSectors.reduce((a, s) => a + s.avgPricePerM2, 0) / len)
   const avgPredicted = Math.round(uniqueSectors.reduce((a, s) => a + s.predictedPriceNextYear, 0) / len)
   const avgPredictedPm2 = Math.round(uniqueSectors.reduce((a, s) => a + s.predictedPricePerM2NextYear, 0) / len)
@@ -189,7 +182,6 @@ function buildResult(department: string, sectors: SectorAnalysis[]): AnalysisRes
     departmentSummary: {
       departmentCode: department,
       totalTransactions: uniqueSectors.reduce((a, s) => a + s.transactionCount, 0),
-      avgPrice,
       avgPricePerM2: avgPm2,
       predictedAvgPriceNextYear: avgPredicted,
       predictedAvgPricePerM2NextYear: avgPredictedPm2,
