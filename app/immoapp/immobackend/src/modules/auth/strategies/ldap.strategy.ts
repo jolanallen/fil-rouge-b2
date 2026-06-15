@@ -132,7 +132,7 @@ export class LdapStrategy implements OnModuleInit {
     const identities = upn ? [upn] : [userDn]
 
     for (const identity of identities) {
-      const attrs = await this.tryBindAndSearch(String(identity), password)
+      const attrs = await this.tryBindAndSearch(String(identity), password, userDn)
       if (attrs) return attrs
     }
 
@@ -142,6 +142,7 @@ export class LdapStrategy implements OnModuleInit {
   private tryBindAndSearch(
     bindDn: string,
     password: string,
+    searchDn: string,
   ): Promise<Record<string, string[]> | null> {
     const client = ldap.createClient({ url: this.url, connectTimeout: 5000 })
     client.on('error', () => {})
@@ -165,7 +166,7 @@ export class LdapStrategy implements OnModuleInit {
           timeLimit: 10,
         }
 
-        client.search(bindDn, opts, (err2, res) => {
+        client.search(searchDn, opts, (err2, res) => {
           if (err2) {
             client.destroy()
             return resolve(null)
