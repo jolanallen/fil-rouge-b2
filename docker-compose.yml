@@ -85,6 +85,8 @@ services:
         VITE_CDN_BASE_URL: /
     ports:
       - '3002:80'
+      - '3003:443'
+
     depends_on:
       - immobackend
 
