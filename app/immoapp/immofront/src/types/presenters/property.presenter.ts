@@ -58,7 +58,6 @@ export interface Property {
   isFavorite?: boolean
   messages?: PropertyMessage[]
   history?: PropertyHistoryEvent[]
-  tags?: string[]
   stats?: {
     totalViews: number
     totalClicks: number
