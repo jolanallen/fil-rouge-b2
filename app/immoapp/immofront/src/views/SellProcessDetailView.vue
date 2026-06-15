@@ -14,7 +14,7 @@ import Spinner from '@/components/global/Spinner.vue'
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
-const { currentProcess, fetchProcessById, sendMessage, staffSendMessage, updateProperty, updateProcessStatus, updateProcessTags, loading } = useSellProcess()
+const { currentProcess, fetchProcessById, sendMessage, staffSendMessage, updateProperty, updateProcessStatus, loading } = useSellProcess()
 useScrollAnimation()
 
 const agencies = ref<{ id: string; name: string; city: string }[]>([])
@@ -25,7 +25,6 @@ const activeSection = ref<'details' | 'conversation' | 'history' | 'edit'>('deta
 const editForm = ref({ title: '', description: '', estimatedPrice: 0, agency: '', images: [] as string[], features: [] as string[], dpe: '' })
 const editSaving = ref(false)
 const editSuccess = ref(false)
-const newTag = ref('')
 const newFeature = ref('')
 
 const processId = route.params.id as string
@@ -156,15 +155,24 @@ async function saveEdit() {
   if (!currentProcess.value) return
   editSaving.value = true
   editSuccess.value = false
-  const updated = await updateProperty(currentProcess.value.id, {
-    title: editForm.value.title,
-    description: editForm.value.description,
-    price: editForm.value.estimatedPrice,
-    agency: editForm.value.agency,
-    images: editForm.value.images,
-    features: editForm.value.features,
-    dpe: editForm.value.dpe
-  })
+
+  const orig = currentProcess.value
+  const f = editForm.value
+  const payload: Record<string, unknown> = {}
+  if (f.title !== orig.title) payload.title = f.title
+  if (f.description !== orig.description) payload.description = f.description
+  if (f.estimatedPrice !== orig.price) payload.price = f.estimatedPrice
+  if (f.agency !== orig.agency) payload.agency = f.agency
+  if (f.dpe !== (orig.dpe || '')) payload.dpe = f.dpe
+  if (JSON.stringify(f.features) !== JSON.stringify(orig.features.map(x => x.name))) payload.features = f.features
+  if (JSON.stringify(f.images) !== JSON.stringify(orig.images.map(x => x.url))) payload.images = f.images
+
+  if (!Object.keys(payload).length) {
+    editSaving.value = false
+    return
+  }
+
+  const updated = await updateProperty(currentProcess.value.id, payload)
   editSaving.value = false
   if (updated) {
     editSuccess.value = true
@@ -207,18 +215,6 @@ async function updatePropertyStatus(status: string) {
   await updateProcessStatus(currentProcess.value.id, status)
 }
 
-async function addTag() {
-  if (!newTag.value.trim() || !currentProcess.value) return
-  const tags = [...(currentProcess.value.tags || []), newTag.value.trim()]
-  await updateProcessTags(currentProcess.value.id, tags)
-  newTag.value = ''
-}
-
-async function removeEditTag(tag: string) {
-  if (!currentProcess.value) return
-  const tags = (currentProcess.value.tags || []).filter(t => t !== tag)
-  await updateProcessTags(currentProcess.value.id, tags)
-}
 </script>
 
 <template>
@@ -304,15 +300,6 @@ async function removeEditTag(tag: string) {
                 <svg class="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>
                 {{ f.name }}
               </div>
-            </div>
-            <div v-if="currentProcess.tags?.length" class="flex flex-wrap gap-1.5 mt-3">
-              <span
-                v-for="tag in currentProcess.tags || []"
-                :key="tag"
-                class="px-2.5 py-1 bg-primary-50 text-primary text-xs rounded-full border border-primary-100"
-              >
-                {{ tag }}
-              </span>
             </div>
           </Card>
 
@@ -676,30 +663,7 @@ async function removeEditTag(tag: string) {
                 </div>
               </div>
 
-              <div>
-                <label class="block text-xs font-medium text-slate-500 mb-2">Tags</label>
-                <div class="flex flex-wrap gap-1.5 mb-2">
-                  <span
-                    v-for="tag in currentProcess.tags || []"
-                    :key="tag"
-                    class="inline-flex items-center gap-1 px-2.5 py-1 bg-primary-50 text-primary text-xs rounded-full border border-primary-100"
-                  >
-                    {{ tag }}
-                    <button class="hover:text-red-500 transition-colors" @click="removeEditTag(tag)">
-                      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
-                    </button>
-                  </span>
-                </div>
-                <div class="flex gap-2">
-                  <input
-                    v-model="newTag"
-                    placeholder="Ajouter un tag..."
-                    class="flex-1 rounded-xl border border-slate-200 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-300"
-                    @keydown.enter.prevent="addTag"
-                  />
-                  <Button variant="outline" size="sm" :disabled="!newTag.trim()" @click="addTag">Ajouter</Button>
-                </div>
-              </div>
+
             </div>
           </div>
         </Card>
