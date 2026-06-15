@@ -63,16 +63,10 @@ export class LdapStrategy implements OnModuleInit {
     try {
       await this.bindServiceAccount(client)
       const userDn = await this.findUserDn(client, username)
-      if (!userDn) {
-        this.logger.warn(`LDAP user not found for username=${username} with filter=${this.searchFilter.replace('{{username}}', username)}`)
-        return null
-      }
+      if (!userDn) return null
 
-      const attributes = await this.verifyCredentials(userDn, password)
-      if (!attributes) {
-        this.logger.warn(`LDAP credentials invalid or attr search failed for dn=${userDn}`)
-        return null
-      }
+      const attributes = await this.verifyCredentials(userDn, password, username)
+      if (!attributes) return null
 
       return {
         dn: userDn,
@@ -122,17 +116,41 @@ export class LdapStrategy implements OnModuleInit {
     })
   }
 
-  private verifyCredentials(
+  private async verifyCredentials(
     userDn: string,
+    password: string,
+    username: string,
+  ): Promise<Record<string, string[]> | null> {
+    const domain = this.baseDn
+      .split(',')
+      .filter(p => p.startsWith('DC='))
+      .map(p => p.slice(3))
+      .join('.')
+
+    const identities = [userDn]
+    if (username.includes('@')) {
+      identities.push(username)
+    } else if (domain) {
+      identities.push(`${username}@${domain}`)
+    }
+
+    for (const identity of identities) {
+      const attrs = await this.tryBindAndSearch(String(identity), password)
+      if (attrs) return attrs
+    }
+
+    return null
+  }
+
+  private tryBindAndSearch(
+    bindDn: string,
     password: string,
   ): Promise<Record<string, string[]> | null> {
     const client = ldap.createClient({ url: this.url })
-    client.on('error', (err) => {
-      this.logger.error(`LDAP verify client error: ${err.message}`)
-    })
+    client.on('error', () => {})
 
     return new Promise((resolve) => {
-      client.bind(String(userDn), String(password), (err) => {
+      client.bind(bindDn, password, (err) => {
         if (err) {
           client.destroy()
           return resolve(null)
@@ -144,7 +162,7 @@ export class LdapStrategy implements OnModuleInit {
           timeLimit: 10,
         }
 
-        client.search(userDn, opts, (err2, res) => {
+        client.search(bindDn, opts, (err2, res) => {
           if (err2) {
             client.destroy()
             return resolve(null)
