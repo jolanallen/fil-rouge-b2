@@ -1,6 +1,6 @@
-import { apiGet, apiPost } from './api.lib'
-import type { LoginDTO, RegisterDTO } from '@/types/dtos/auth.dto'
-import type { AuthResponse, User } from '@/types/presenters/auth.presenter'
+import { apiGet, apiPost, apiPut } from './api.lib'
+import type { LoginDTO, RegisterDTO, StaffLoginDTO, StaffOnboardingDTO } from '@/types/dtos/auth.dto'
+import type { AuthResponse, StaffLoginResponse, User } from '@/types/presenters/auth.presenter'
 
 const MOCK_USERS = [
   {
@@ -41,6 +41,42 @@ export async function login(data: LoginDTO): Promise<AuthResponse> {
       accessToken: 'mock-access-token-' + user.id,
       refreshToken: 'mock-refresh-token-' + user.id,
       expiresIn: 3600
+    }
+  }
+}
+
+
+export async function staffLogin(data: StaffLoginDTO): Promise<StaffLoginResponse> {
+  try {
+    return await apiPost<StaffLoginResponse>('/auth/staff/login', data)
+  } catch (e: any) {
+    if (e?.message !== 'MOCK_NEEDS_HANDLER') throw e
+    const user = MOCK_USERS.find(u => u.email === data.username && u.password === data.password)
+    if (!user) {
+      throw new Error('Identifiants invalides')
+    }
+    return {
+      user: { ...user, password: undefined } as any,
+      accessToken: 'mock-access-token-' + user.id,
+      refreshToken: 'mock-refresh-token-' + user.id,
+      expiresIn: 3600,
+      needsOnboarding: false,
+    }
+  }
+}
+
+export async function completeStaffOnboarding(data: StaffOnboardingDTO): Promise<User> {
+  try {
+    return await apiPut<User>('/auth/staff/onboarding', data)
+  } catch (e: any) {
+    if (e?.message !== 'MOCK_NEEDS_HANDLER') throw e
+    return {
+      id: 'mock-staff-id',
+      email: data.email,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      role: 'staff',
+      createdAt: new Date().toISOString(),
     }
   }
 }

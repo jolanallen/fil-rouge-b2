@@ -26,6 +26,13 @@ const lastName = ref('')
 const phone = ref('')
 const error = ref<string | null>(null)
 
+const agentCode = ref('')
+
+const onboardingFirstName = ref('')
+const onboardingLastName = ref('')
+const onboardingEmail = ref('')
+const onboardingPhone = ref('')
+
 function toggleMode() {
   if (!isClientLogin.value) return
   isRegister.value = !isRegister.value
@@ -34,12 +41,16 @@ function toggleMode() {
 
 async function handleSubmit() {
   error.value = null
-  if (!email.value || !password.value) {
+  if (!password.value || (isClientLogin.value ? !email.value : !agentCode.value)) {
     error.value = 'Veuillez remplir tous les champs obligatoires'
     return
   }
   if (isRegister.value && password.value !== confirmPassword.value) {
     error.value = 'Les mots de passe ne correspondent pas'
+    return
+  }
+  if (isRegister.value && !isClientLogin.value) {
+    error.value = 'Inscriptions uniquement possible pour les clients.'
     return
   }
   if (isRegister.value && isClientLogin.value) {
@@ -53,7 +64,9 @@ async function handleSubmit() {
     const success = await auth.register(data)
     if (success) router.push('/dashboard')
     else error.value = auth.error
-  } else {
+    return
+  }
+  if (!isRegister.value && isClientLogin.value) {
     const data: LoginDTO = {
       email: email.value,
       password: password.value,
@@ -61,7 +74,33 @@ async function handleSubmit() {
     const success = await auth.login(data)
     if (success) router.push('/dashboard')
     else error.value = auth.error
+    return
   }
+  if (!isRegister.value && !isClientLogin.value) {
+    const success = await auth.staffLogin({
+      username: agentCode.value || email.value,
+      password: password.value,
+    })
+    if (success && auth.needsOnboarding) return
+    if (success) router.push('/dashboard')
+    else error.value = auth.error
+  }
+}
+
+async function handleOnboardingSubmit() {
+  error.value = null
+  if (!onboardingFirstName.value || !onboardingLastName.value || !onboardingEmail.value) {
+    error.value = 'Veuillez remplir tous les champs obligatoires'
+    return
+  }
+  const success = await auth.completeOnboarding({
+    firstName: onboardingFirstName.value,
+    lastName: onboardingLastName.value,
+    email: onboardingEmail.value,
+    phone: onboardingPhone.value || undefined,
+  })
+  if (success) router.push('/dashboard')
+  else error.value = auth.error
 }
 
 async function handleGoogleLogin() {
@@ -76,8 +115,13 @@ async function handleGoogleLogin() {
 }
 
 function fillDemoCredentials() {
-  email.value = isClientLogin.value ? 'client@yplaza.fr' : 'staff@yplaza.fr'
-  password.value = isClientLogin.value ? 'client123' : 'staff123'
+  if (isClientLogin.value) {
+    email.value = 'client@yplaza.fr'
+    password.value = 'client123'
+  } else {
+    agentCode.value = 'staff@yplaza.fr'
+    password.value = 'staff123'
+  }
 }
 
 
@@ -107,15 +151,15 @@ function fillDemoCredentials() {
             <span class="text-lg font-serif font-semibold text-primary">Y-Plaza</span>
           </div>
           <h1 class="text-2xl font-serif font-bold text-slate-900">
-            {{ isRegister ? 'Créer un compte' : 'Connexion' }}
+            {{ auth.needsOnboarding ? 'Finaliser votre inscription' : isRegister ? 'Créer un compte' : 'Connexion' }}
           </h1>
           <p class="text-slate-500 text-sm mt-2">
-            {{ isRegister ? 'Rejoignez Y-Plaza dès aujourd\'hui' : 'Accédez à votre espace personnel' }}
+            {{ auth.needsOnboarding ? 'Complétez votre profil pour accéder à l\'espace agent' : isRegister ? 'Rejoignez Y-Plaza dès aujourd\'hui' : 'Accédez à votre espace personnel' }}
           </p>
         </div>
 
         <!-- Role Switch -->
-        <div class="flex bg-slate-100 rounded-xl p-1 mb-6">
+        <div v-if="!auth.needsOnboarding" class="flex bg-slate-100 rounded-xl p-1 mb-6">
           <button
             :class="['flex-1 py-2 text-sm font-medium rounded-lg transition-all cursor-pointer', isClientLogin ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700']"
             @click="isClientLogin = true"
@@ -130,7 +174,7 @@ function fillDemoCredentials() {
           </button>
         </div>
 
-        <form @submit.prevent="handleSubmit" class="space-y-4">
+        <form v-if="!auth.needsOnboarding" @submit.prevent="handleSubmit" class="space-y-4">
           <template v-if="isRegister && isClientLogin">
             <div class="grid grid-cols-2 gap-3">
               <InputText v-model="firstName" label="Prénom" placeholder="Jean" />
@@ -147,7 +191,8 @@ function fillDemoCredentials() {
             <span class="text-xs text-primary-700">Authentification LDAP — Agents uniquement</span>
           </div>
 
-          <InputText v-model="email" :label="!isClientLogin ? 'Identifiant LDAP' : 'Email'" :placeholder="!isClientLogin ? 'identifiant@yplaza.fr' : 'exemple@email.com'" type="email" required />
+          <InputText v-if="isClientLogin" v-model="email" label="Email" placeholder="exemple@email.com" type="email" required />
+          <InputText v-if="!isClientLogin" v-model="agentCode" label="Identifiant LDAP" placeholder="identifiant@yplaza.fr" required />
           <InputText v-model="password" label="Mot de passe" placeholder="••••••••" type="password" required />
           <InputText v-if="isRegister && isClientLogin" v-model="confirmPassword" label="Confirmer le mot de passe" placeholder="••••••••" type="password" required />
 
@@ -186,14 +231,38 @@ function fillDemoCredentials() {
           </Button>
         </form>
 
-        <p v-if="isClientLogin" class="text-center text-sm text-slate-500 mt-6">
+        <!-- Onboarding Form -->
+        <form v-if="auth.needsOnboarding" @submit.prevent="handleOnboardingSubmit" class="space-y-4">
+          <div class="flex items-center gap-2 p-3 bg-primary-50 border border-primary-100 rounded-xl">
+            <svg class="w-5 h-5 text-primary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            <span class="text-xs text-primary-700">Authentifié via LDAP — Complétez votre profil</span>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <InputText v-model="onboardingFirstName" label="Prénom" placeholder="Jean" required />
+            <InputText v-model="onboardingLastName" label="Nom" placeholder="Dupont" required />
+          </div>
+          <InputText v-model="onboardingEmail" label="Email" placeholder="exemple@email.com" type="email" required />
+          <InputText v-model="onboardingPhone" label="Téléphone" placeholder="0612345678" type="tel" />
+
+          <div v-if="error" class="p-3 bg-red-50 border border-red-100 rounded-xl">
+            <p class="text-xs text-red-600">{{ error }}</p>
+          </div>
+
+          <Button type="submit" variant="primary" full-width :loading="auth.loading" size="lg">
+            Finaliser mon inscription
+          </Button>
+        </form>
+
+        <p v-if="isClientLogin && !auth.needsOnboarding" class="text-center text-sm text-slate-500 mt-6">
           {{ isRegister ? 'Déjà un compte ?' : 'Pas encore de compte ?' }}
           <button class="text-primary font-medium hover:text-primary-700 cursor-pointer" @click="toggleMode">
             {{ isRegister ? 'Se connecter' : 'S\'inscrire' }}
           </button>
         </p>
 
-        <div class="mt-4 p-3 bg-primary-50 border border-primary-100 rounded-xl">
+        <div v-if="!auth.needsOnboarding" class="mt-4 p-3 bg-primary-50 border border-primary-100 rounded-xl">
           <p class="text-xs text-primary-700 font-medium mb-1">Comptes de démonstration :</p>
           <button class="text-xs text-primary-500 hover:text-primary-700 underline cursor-pointer" @click="fillDemoCredentials">
             Remplir automatiquement
