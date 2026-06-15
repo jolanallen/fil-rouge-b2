@@ -127,12 +127,9 @@ export class LdapStrategy implements OnModuleInit {
       .map(p => p.slice(3))
       .join('.')
 
-    const identities = [userDn]
-    if (username.includes('@')) {
-      identities.push(username)
-    } else if (domain) {
-      identities.push(`${username}@${domain}`)
-    }
+    const upn = username.includes('@') ? username : domain ? `${username}@${domain}` : null
+
+    const identities = upn ? [upn] : [userDn]
 
     for (const identity of identities) {
       const attrs = await this.tryBindAndSearch(String(identity), password)
@@ -146,11 +143,17 @@ export class LdapStrategy implements OnModuleInit {
     bindDn: string,
     password: string,
   ): Promise<Record<string, string[]> | null> {
-    const client = ldap.createClient({ url: this.url })
+    const client = ldap.createClient({ url: this.url, connectTimeout: 5000 })
     client.on('error', () => {})
 
     return new Promise((resolve) => {
+      const timer = setTimeout(() => {
+        client.destroy()
+        resolve(null)
+      }, 5000)
+
       client.bind(bindDn, password, (err) => {
+        clearTimeout(timer)
         if (err) {
           client.destroy()
           return resolve(null)
