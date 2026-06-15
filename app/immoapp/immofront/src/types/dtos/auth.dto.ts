@@ -11,4 +11,17 @@ export interface RegisterDTO {
   phone?: string
 }
 
+export interface StaffLoginDTO {
+  username: string
+  password: string
+}
+
+export interface StaffOnboardingDTO {
+  onboardingToken: string
+  firstName: string
+  lastName: string
+  email: string
+  phone?: string
+}
+
 
