@@ -59,19 +59,22 @@ export class LdapStrategy implements OnModuleInit {
 
     try {
       await this.bindServiceAccount(searchClient)
-      const userDn = await this.findUserDn(searchClient, username)
-      if (!userDn) return null
-      this.logger.log(`UserDN Found: ${userDn}`)
-      const attributes = await this.searchUserAttributes(searchClient, String(userDn.objectName))
+      const entry = await this.findUserDn(searchClient, username)
+      if (!entry) return null
 
       const valid = await this.verifyPassword(username, password)
       if (!valid) return null
 
+      const attrs: Record<string, string[]> = {}
+      for (const attr of entry.attributes) {
+        attrs[attr.type] = Array.isArray(attr.values) ? attr.values : [attr.values]
+      }
+
       return {
-        dn: userDn.objectName ?? "",
-        firstName: attributes?.[this.attrFirstName]?.[0],
-        lastName: attributes?.[this.attrLastName]?.[0],
-        email: attributes?.[this.attrEmail]?.[0],
+        dn: String(entry.objectName),
+        firstName: attrs[this.attrFirstName]?.[0],
+        lastName: attrs[this.attrLastName]?.[0],
+        email: attrs[this.attrEmail]?.[0],
       }
     } finally {
       searchClient.destroy()
@@ -95,7 +98,6 @@ export class LdapStrategy implements OnModuleInit {
     const opts: ldap.SearchOptions = {
       scope: 'sub' as const,
       filter,
-      attributes: ['dn'],
       timeLimit: 10,
     }
 
@@ -111,33 +113,6 @@ export class LdapStrategy implements OnModuleInit {
           if (result?.status !== 0) resolve(null)
           else resolve(null)
         })
-      })
-    })
-  }
-
-  private searchUserAttributes(
-    client: ldap.Client,
-    userDn: string,
-  ): Promise<Record<string, string[]> | null> {
-    const opts: ldap.SearchOptions = {
-      scope: 'base' as const,
-      attributes: [this.attrFirstName, this.attrLastName, this.attrEmail],
-      timeLimit: 10,
-    }
-
-    return new Promise((resolve) => {
-      client.search(userDn, opts, (err, res) => {
-        if (err) return resolve(null)
-
-        res.on('searchEntry', (entry) => {
-          const attrs: Record<string, string[]> = {}
-          for (const attr of entry.attributes) {
-            attrs[attr.type] = Array.isArray(attr.values) ? attr.values : [attr.values]
-          }
-          resolve(attrs)
-        })
-        res.on('error', () => resolve(null))
-        res.on('end', () => resolve(null))
       })
     })
   }
