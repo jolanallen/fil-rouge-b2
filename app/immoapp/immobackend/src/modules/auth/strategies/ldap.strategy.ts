@@ -61,14 +61,14 @@ export class LdapStrategy implements OnModuleInit {
       await this.bindServiceAccount(searchClient)
       const userDn = await this.findUserDn(searchClient, username)
       if (!userDn) return null
-
-      const attributes = await this.searchUserAttributes(searchClient, userDn)
+      this.logger.log(`UserDN Found: ${userDn}`)
+      const attributes = await this.searchUserAttributes(searchClient, String(userDn.objectName))
 
       const valid = await this.verifyPassword(username, password)
       if (!valid) return null
 
       return {
-        dn: userDn,
+        dn: userDn.objectName ?? "",
         firstName: attributes?.[this.attrFirstName]?.[0],
         lastName: attributes?.[this.attrLastName]?.[0],
         email: attributes?.[this.attrEmail]?.[0],
@@ -90,7 +90,7 @@ export class LdapStrategy implements OnModuleInit {
   private findUserDn(
     client: ldap.Client,
     username: string,
-  ): Promise<string | null> {
+  ): Promise<ldap.SearchEntry | null> {
     const filter = this.searchFilter.replace('{{username}}', username)
     const opts: ldap.SearchOptions = {
       scope: 'sub' as const,
@@ -104,7 +104,7 @@ export class LdapStrategy implements OnModuleInit {
         if (err) return reject(err)
 
         res.on('searchEntry', (entry) => {
-          resolve(String(entry.objectName))
+          resolve(entry)
         })
         res.on('error', (err) => reject(err))
         res.on('end', (result) => {
@@ -162,7 +162,6 @@ export class LdapStrategy implements OnModuleInit {
 
     return new Promise((resolve) => {
       client.bind(String(bindDn), String(password), (err) => {
-        this.logger.log(`Error on verify credential? ${err}`)
         client.destroy()
         resolve(!err)
       })
