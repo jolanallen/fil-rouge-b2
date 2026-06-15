@@ -8,7 +8,7 @@ Le siège regroupe les 30 postes clients et l'infrastructure serveur principale.
 
 | Équipement / Rôle | Adresse IP Privée (LAN) | Adresse IP Publique (WAN) | Remarques |
 | --- | --- | --- | --- |
-| **Pare-feu OPNsense (Passerelle)** | 192.168.10.254 | `82.100.50.10` | Passerelle par défaut pour le LAN |
+| **Pare-feu OPNsense (Passerelle)** | 192.168.10.254 | `x.x.x.x` | Passerelle par défaut pour le LAN |
 | **SRV-AIX-ADDS-01** | 192.168.10.2 | - | AD, DNS, DHCP, Serveur de fichiers |
 | **SRV-AIX-ADDS-02** | 192.168.10.4 | - |Réplication de SRV-AIX-ADDS-01 |
 | **SRV-AIX-LIN-03** | 192.168.10.3 | - | Hébergement web et Base de données |
