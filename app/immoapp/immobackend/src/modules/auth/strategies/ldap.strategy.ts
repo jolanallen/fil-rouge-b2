@@ -126,8 +126,11 @@ export class LdapStrategy implements OnModuleInit {
     })
 
     return new Promise((resolve) => {
-      client.bind(userDn, password, (err) => {
+      this.logger.debug(`[verifyCredentials] userDn type=${typeof userDn} value="${userDn}", password type=${typeof password} length=${(password || '').length}`)
+
+      client.bind(String(userDn), String(password), (err) => {
         if (err) {
+          this.logger.warn(`[verifyCredentials] bind failed: ${err.constructor.name} - ${err.message}`)
           client.destroy()
           return resolve(null)
         }
