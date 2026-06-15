@@ -10,7 +10,8 @@ Le siège regroupe les 30 postes clients et l'infrastructure serveur principale.
 | --- | --- | --- | --- |
 | **Pare-feu OPNsense (Passerelle)** | 192.168.10.254 | `82.100.50.10` | Passerelle par défaut pour le LAN |
 | **SRV-AIX-ADDS-01** | 192.168.10.2 | - | AD, DNS, DHCP, Serveur de fichiers |
-| **SRV-AIX-WEB-01** | 192.168.10.3 | - | Hébergement web et Base de données |
+| **SRV-AIX-ADDS-02** | 192.168.10.4 | - |Réplication de SRV-AIX-ADDS-01 |
+| **SRV-AIX-LIN-03** | 192.168.10.3 | - | Hébergement web et Base de données |
 | **Imprimante Siège** | 192.168.10.10 | - | IP Statique réservée |
 | **Plage Clients DHCP (30 postes)** | 192.168.10.50 à .100 | - | Distribuée par l'AD |
 
