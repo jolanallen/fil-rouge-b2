@@ -65,7 +65,7 @@ export class LdapStrategy implements OnModuleInit {
       const userDn = await this.findUserDn(client, username)
       if (!userDn) return null
 
-      const attributes = await this.verifyCredentials(client, userDn, password)
+      const attributes = await this.verifyCredentials(userDn, password)
       if (!attributes) return null
 
       return {
@@ -117,13 +117,20 @@ export class LdapStrategy implements OnModuleInit {
   }
 
   private verifyCredentials(
-    client: ldap.Client,
     userDn: string,
     password: string,
   ): Promise<Record<string, string[]> | null> {
-    return new Promise((resolve, reject) => {
+    const client = ldap.createClient({ url: this.url })
+    client.on('error', (err) => {
+      this.logger.error(`LDAP verify client error: ${err.message}`)
+    })
+
+    return new Promise((resolve) => {
       client.bind(userDn, password, (err) => {
-        if (err) return resolve(null)
+        if (err) {
+          client.destroy()
+          return resolve(null)
+        }
 
         const opts: ldap.SearchOptions = {
           scope: 'base' as const,
@@ -132,17 +139,27 @@ export class LdapStrategy implements OnModuleInit {
         }
 
         client.search(userDn, opts, (err2, res) => {
-          if (err2) return reject(err2)
+          if (err2) {
+            client.destroy()
+            return resolve(null)
+          }
 
           res.on('searchEntry', (entry) => {
             const attrs: Record<string, string[]> = {}
             for (const attr of entry.attributes) {
               attrs[attr.type] = Array.isArray(attr.values) ? attr.values : [attr.values]
             }
+            client.destroy()
             resolve(attrs)
           })
-          res.on('error', (err3) => reject(err3))
-          res.on('end', () => resolve(null))
+          res.on('error', () => {
+            client.destroy()
+            resolve(null)
+          })
+          res.on('end', () => {
+            client.destroy()
+            resolve(null)
+          })
         })
       })
     })
