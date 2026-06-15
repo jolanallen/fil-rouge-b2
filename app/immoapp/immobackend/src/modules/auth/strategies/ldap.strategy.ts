@@ -63,10 +63,16 @@ export class LdapStrategy implements OnModuleInit {
     try {
       await this.bindServiceAccount(client)
       const userDn = await this.findUserDn(client, username)
-      if (!userDn) return null
+      if (!userDn) {
+        this.logger.warn(`LDAP user not found for username=${username} with filter=${this.searchFilter.replace('{{username}}', username)}`)
+        return null
+      }
 
       const attributes = await this.verifyCredentials(userDn, password)
-      if (!attributes) return null
+      if (!attributes) {
+        this.logger.warn(`LDAP credentials invalid or attr search failed for dn=${userDn}`)
+        return null
+      }
 
       return {
         dn: userDn,
@@ -105,7 +111,7 @@ export class LdapStrategy implements OnModuleInit {
         if (err) return reject(err)
 
         res.on('searchEntry', (entry) => {
-          resolve(entry.objectName)
+          resolve(String(entry.objectName))
         })
         res.on('error', (err) => reject(err))
         res.on('end', (result) => {
@@ -126,11 +132,8 @@ export class LdapStrategy implements OnModuleInit {
     })
 
     return new Promise((resolve) => {
-      this.logger.debug(`[verifyCredentials] userDn type=${typeof userDn} value="${userDn}", password type=${typeof password} length=${(password || '').length}`)
-
       client.bind(String(userDn), String(password), (err) => {
         if (err) {
-          this.logger.warn(`[verifyCredentials] bind failed: ${err.constructor.name} - ${err.message}`)
           client.destroy()
           return resolve(null)
         }
