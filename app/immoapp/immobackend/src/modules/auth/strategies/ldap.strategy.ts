@@ -55,27 +55,26 @@ export class LdapStrategy implements OnModuleInit {
     lastName?: string
     email?: string
   } | null> {
-    const client = ldap.createClient({ url: this.url })
-    client.on('error', (err) => {
-      this.logger.error(`LDAP Client Error: ${err.message}`)
-    })
+    const searchClient = ldap.createClient({ url: this.url })
 
     try {
-      await this.bindServiceAccount(client)
-      const userDn = await this.findUserDn(client, username)
+      await this.bindServiceAccount(searchClient)
+      const userDn = await this.findUserDn(searchClient, username)
       if (!userDn) return null
 
-      const attributes = await this.verifyCredentials(userDn, password, username)
-      if (!attributes) return null
+      const attributes = await this.searchUserAttributes(searchClient, userDn)
+
+      const valid = await this.verifyPassword(username, password)
+      if (!valid) return null
 
       return {
         dn: userDn,
-        firstName: attributes[this.attrFirstName]?.[0],
-        lastName: attributes[this.attrLastName]?.[0],
-        email: attributes[this.attrEmail]?.[0],
+        firstName: attributes?.[this.attrFirstName]?.[0],
+        lastName: attributes?.[this.attrLastName]?.[0],
+        email: attributes?.[this.attrEmail]?.[0],
       }
     } finally {
-      client.destroy()
+      searchClient.destroy()
     }
   }
 
@@ -116,79 +115,56 @@ export class LdapStrategy implements OnModuleInit {
     })
   }
 
-  private async verifyCredentials(
+  private searchUserAttributes(
+    client: ldap.Client,
     userDn: string,
-    password: string,
-    username: string,
   ): Promise<Record<string, string[]> | null> {
+    const opts: ldap.SearchOptions = {
+      scope: 'base' as const,
+      attributes: [this.attrFirstName, this.attrLastName, this.attrEmail],
+      timeLimit: 10,
+    }
+
+    return new Promise((resolve) => {
+      client.search(userDn, opts, (err, res) => {
+        if (err) return resolve(null)
+
+        res.on('searchEntry', (entry) => {
+          const attrs: Record<string, string[]> = {}
+          for (const attr of entry.attributes) {
+            attrs[attr.type] = Array.isArray(attr.values) ? attr.values : [attr.values]
+          }
+          resolve(attrs)
+        })
+        res.on('error', () => resolve(null))
+        res.on('end', () => resolve(null))
+      })
+    })
+  }
+
+  private verifyPassword(
+    username: string,
+    password: string,
+  ): Promise<boolean> {
     const domain = this.baseDn
       .split(',')
       .filter(p => p.startsWith('DC='))
       .map(p => p.slice(3))
       .join('.')
 
-    const upn = username.includes('@') ? username : domain ? `${username}@${domain}` : null
+    const bindDn = username.includes('@')
+      ? username
+      : domain
+        ? `${username}@${domain}`
+        : username
 
-    const identities = upn ? [upn] : [userDn]
-
-    for (const identity of identities) {
-      const attrs = await this.tryBindAndSearch(String(identity), password, userDn)
-      if (attrs) return attrs
-    }
-
-    return null
-  }
-
-  private tryBindAndSearch(
-    bindDn: string,
-    password: string,
-    searchDn: string,
-  ): Promise<Record<string, string[]> | null> {
-    const client = ldap.createClient({ url: this.url, connectTimeout: 5000 })
-    client.on('error', () => {})
+    const client = ldap.createClient({ url: this.url})
 
     return new Promise((resolve) => {
-      const timer = setTimeout(() => {
+      client.bind(String(bindDn), String(password), (err) => {
+        this.logger.log(`Error on verify credential? ${err}`)
         client.destroy()
-        resolve(null)
-      }, 5000)
-
-      client.bind(bindDn, password, (err) => {
-        clearTimeout(timer)
-        if (err) {
-          client.destroy()
-          return resolve(null)
-        }
-
-        const opts: ldap.SearchOptions = {
-          scope: 'base' as const,
-          attributes: [this.attrFirstName, this.attrLastName, this.attrEmail],
-          timeLimit: 10,
-        }
-
-        client.search(searchDn, opts, (err2, res) => {
-          if (err2) {
-            client.destroy()
-            return resolve(null)
-          }
-
-          res.on('searchEntry', (entry) => {
-            const attrs: Record<string, string[]> = {}
-            for (const attr of entry.attributes) {
-              attrs[attr.type] = Array.isArray(attr.values) ? attr.values : [attr.values]
-            }
-            client.destroy()
-            resolve(attrs)
-          })
-          res.on('error', () => {
-            client.destroy()
-            resolve(null)
-          })
-          res.on('end', () => {
-            client.destroy()
-            resolve(null)
-          })
-        })
+        resolve(!err)
       })
     })
   }
