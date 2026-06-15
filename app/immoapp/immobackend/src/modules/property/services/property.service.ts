@@ -186,8 +186,8 @@ export class PropertyService {
     if (dto.price !== undefined) property.price = dto.price
 
     if (dto.surface !== undefined || dto.price !== undefined) {
-      property.pricePerM2 =
-        Math.round((Number(property.price) / Number(property.surface)) * 100) / 100
+      const surf = Number(dto.surface ?? property.surface)
+      property.pricePerM2 = surf > 0 ? Math.round((Number(property.price) / surf) * 100) / 100 : null
     }
 
     if (dto.features !== undefined) {
@@ -199,16 +199,50 @@ export class PropertyService {
         return f
       })
       await this.featureRepo.save(features)
+      property.features = []
+    }
+
+    if (dto.images !== undefined) {
+      const existingUrls = new Set(property.images.map(i => i.url))
+      const incomingUrls = new Set(dto.images)
+
+      for (const img of property.images) {
+        if (!incomingUrls.has(img.url)) {
+          try { await this.storage.delete(img.url) } catch {}
+          await this.imageRepo.delete(img.id)
+        }
+      }
+
+      for (const url of dto.images) {
+        if (existingUrls.has(url)) continue
+        if (!url.startsWith('data:')) continue
+        const matches = url.match(/^data:(.+);base64,(.+)$/)
+        if (!matches) continue
+        const mimetype = matches[1]
+        const ext = mimetype.split('/')[1] || 'jpg'
+        const buffer = Buffer.from(matches[2], 'base64')
+        const uploadedUrl = await this.storage.upload(
+          { buffer, originalname: `image.${ext}`, mimetype, size: buffer.length },
+          `properties/${id}`,
+        )
+        const image = new PropertyImage()
+        image.propertyId = id
+        image.url = uploadedUrl
+        image.alt = `Photo ${dto.images.indexOf(url) + 1}`
+        image.isPrimary = dto.images.indexOf(url) === 0
+        await this.imageRepo.save(image)
+      }
+      property.images = []
     }
 
     const saved = await this.propertyRepo.save(property)
 
-    if (priceChanged) {
+    if (priceChanged && property.pricePerM2 != null) {
       const history = new PropertyPriceHistory()
       history.propertyId = saved.id
       history.date = new Date().toISOString().slice(0, 10)
       history.price = Number(property.price)
-      history.pricePerM2 = property.pricePerM2!
+      history.pricePerM2 = property.pricePerM2
       await this.priceHistoryRepo.save(history)
     }
 

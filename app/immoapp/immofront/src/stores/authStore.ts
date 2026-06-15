@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { User } from '@/types/presenters/auth.presenter'
-import type { LoginDTO, RegisterDTO } from '@/types/dtos/auth.dto'
+import type { LoginDTO, RegisterDTO, StaffLoginDTO, StaffOnboardingDTO } from '@/types/dtos/auth.dto'
 import * as authAPI from '@/lib/authAPI.lib'
 import { useToast } from '@/composable/useToast'
 
@@ -11,6 +11,8 @@ export const useAuthStore = defineStore('auth', () => {
   const refreshToken = ref<string | null>(null)
   const loading = ref(false)
   const error = ref<string | null>(null)
+  const needsOnboarding = ref(false)
+  const onboardingToken = ref<string | null>(null)
   const toast = useToast()
 
   const isAuthenticated = computed(() => !!accessToken.value)
@@ -75,6 +77,53 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+
+  async function staffLogin(data: StaffLoginDTO) {
+    loading.value = true
+    error.value = null
+    try {
+      const response = await authAPI.staffLogin(data)
+      user.value = response.user
+      accessToken.value = response.accessToken
+      refreshToken.value = response.refreshToken
+      needsOnboarding.value = response.needsOnboarding
+      onboardingToken.value = response.onboardingToken ?? null
+      save()
+      return true
+    } catch (e: any) {
+      const msg = e.message || 'Erreur de connexion'
+      error.value = msg
+      toast.error(msg)
+      return false
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function completeOnboarding(data: Omit<StaffOnboardingDTO, 'onboardingToken'>) {
+    loading.value = true
+    error.value = null
+    try {
+      const updatedUser = await authAPI.completeStaffOnboarding({
+        ...data,
+        onboardingToken: onboardingToken.value!,
+      })
+      user.value = updatedUser
+      needsOnboarding.value = false
+      onboardingToken.value = null
+      save()
+      toast.success('Profil complété avec succès')
+      return true
+    } catch (e: any) {
+      const msg = e.message || "Erreur lors de la finalisation de l'inscription"
+      error.value = msg
+      toast.error(msg)
+      return false
+    } finally {
+      loading.value = false
+    }
+  }
+
   async function register(data: RegisterDTO) {
     loading.value = true
     error.value = null
@@ -129,6 +178,8 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = null
     accessToken.value = null
     refreshToken.value = null
+    needsOnboarding.value = false
+    onboardingToken.value = null
     localStorage.removeItem('auth')
   }
 
@@ -156,5 +207,5 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  return { user, accessToken, refreshToken, loading, error, isAuthenticated, isStaff, fullName, init, login, register, loginWithGoogle, handleGoogleCallback, refresh, logout, clearSession }
+  return { user, accessToken, refreshToken, loading, error, needsOnboarding, onboardingToken, isAuthenticated, isStaff, fullName, init, login, staffLogin, completeOnboarding, register, loginWithGoogle, handleGoogleCallback, refresh, logout, clearSession }
 })

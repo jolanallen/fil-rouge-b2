@@ -389,18 +389,6 @@ export async function updateSellPropertyStatus(processId: string, status: string
   }
 }
 
-export async function updateProcessTags(processId: string, tags: string[]): Promise<Property> {
-  try {
-    return await apiPut<Property>(`/properties/${processId}`, { tags })
-  } catch (e: any) {
-    if (e?.message !== 'MOCK_NEEDS_HANDLER') throw e
-    await mockDelay(200)
-    const prop = MOCK_PROPERTIES.find(p => p.id === processId)
-    if (!prop) throw new Error('Property not found')
-    return { ...prop }
-  }
-}
-
 export async function updateSellProperty(processId: string, data: Record<string, any>): Promise<Property> {
   try {
     return await apiPut<Property>(`/properties/${processId}`, data)
