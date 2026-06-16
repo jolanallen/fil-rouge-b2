@@ -278,7 +278,7 @@ async function bootstrap() {
     if (features.length) {
       const featureEntities = features.map(name => {
         const f = new PropertyFeature()
-        f.propertyId = saved.id
+        f.property = saved
         f.name = name
         return f
       })
@@ -288,7 +288,7 @@ async function bootstrap() {
     if (images.length) {
       const imageEntities = images.map((url, i) => {
         const img = new PropertyImage()
-        img.propertyId = saved.id
+        img.property = saved
         img.url = url
         img.alt = `Image ${i + 1}`
         img.isPrimary = i === 0
@@ -411,7 +411,7 @@ async function bootstrap() {
     if (features.length) {
       const featureEntities = features.map(name => {
         const f = new PropertyFeature()
-        f.propertyId = saved.id
+        f.property = saved
         f.name = name
         return f
       })

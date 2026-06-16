@@ -6,9 +6,6 @@ export class PropertyImage {
   @PrimaryGeneratedColumn('uuid')
   id!: string
 
-  @Column({ name: 'property_id' })
-  propertyId!: string
-
   @Column()
   url!: string
 

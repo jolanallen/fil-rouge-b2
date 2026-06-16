@@ -146,7 +146,7 @@ export class PropertyService {
     if (dto.features?.length) {
       const features = dto.features.map(name => {
         const f = new PropertyFeature()
-        f.propertyId = saved.id
+        f.property = {id: saved.id} as Property
         f.name = name
         return f
       })
@@ -191,21 +191,21 @@ export class PropertyService {
     }
 
     if (dto.features !== undefined) {
-      await this.featureRepo.delete({ propertyId: id })
+      await this.featureRepo.delete({property: {id: id}})
       const features = dto.features.map(name => {
         const f = new PropertyFeature()
-        f.propertyId = id
+        f.property = property
         f.name = name
         return f
       })
       await this.featureRepo.save(features)
-      property.features = []
+      property.features = features
     }
 
     if (dto.images !== undefined) {
       const existingUrls = new Set(property.images.map(i => i.url))
       const incomingUrls = new Set(dto.images)
-
+      const newImages = []
       for (const img of property.images) {
         if (!incomingUrls.has(img.url)) {
           try { await this.storage.delete(img.url) } catch {}
@@ -223,23 +223,24 @@ export class PropertyService {
         const buffer = Buffer.from(matches[2], 'base64')
         const uploadedUrl = await this.storage.upload(
           { buffer, originalname: `image.${ext}`, mimetype, size: buffer.length },
-          `properties/${id}`,
+          `properties/${property.id}`,
         )
         const image = new PropertyImage()
-        image.propertyId = id
+        image.property = property
         image.url = uploadedUrl
         image.alt = `Photo ${dto.images.indexOf(url) + 1}`
         image.isPrimary = dto.images.indexOf(url) === 0
         await this.imageRepo.save(image)
+        newImages.push(image)
       }
-      property.images = []
+      property.images = newImages
     }
 
     const saved = await this.propertyRepo.save(property)
 
     if (priceChanged && property.pricePerM2 != null) {
       const history = new PropertyPriceHistory()
-      history.propertyId = saved.id
+      history.property = property
       history.date = new Date().toISOString().slice(0, 10)
       history.price = Number(property.price)
       history.pricePerM2 = property.pricePerM2
@@ -283,7 +284,7 @@ export class PropertyService {
     if (dto.features?.length) {
       const features = dto.features.map(name => {
         const f = new PropertyFeature()
-        f.propertyId = savedProperty.id
+        f.property = savedProperty
         f.name = name
         return f
       })
@@ -303,7 +304,7 @@ export class PropertyService {
           `properties/${savedProperty.id}`,
         )
         const image = new PropertyImage()
-        image.propertyId = savedProperty.id
+        image.property = savedProperty
         image.url = url
         image.alt = `Photo ${i + 1}`
         image.isPrimary = i === 0
@@ -361,7 +362,7 @@ export class PropertyService {
     const property = await this.authorizeAccess(propertyId, userId, userRole)
     const url = await this.storage.upload(file, `properties/${propertyId}`)
     const image = new PropertyImage()
-    image.propertyId = propertyId
+    image.property = property
     image.url = url
     image.alt = file.originalname
     image.isPrimary = property.images.length === 0
@@ -370,7 +371,9 @@ export class PropertyService {
 
   async deleteImage(propertyId: string, imageId: string, userId: string, userRole: string) {
     await this.authorizeAccess(propertyId, userId, userRole)
-    const image = await this.imageRepo.findOneBy({ id: imageId, propertyId })
+    const image = await this.imageRepo.createQueryBuilder('img')
+      .where('img.id = :imageId AND img.property_id = :propertyId', { imageId, propertyId })
+      .getOne()
     if (!image) throw new NotFoundException('Image not found')
     try { await this.storage.delete(image.url) } catch {}
     await this.imageRepo.delete(imageId)
