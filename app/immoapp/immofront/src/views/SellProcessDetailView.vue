@@ -22,7 +22,7 @@ const agencies = ref<{ id: string; name: string; city: string }[]>([])
 const newMessage = ref('')
 const activeSection = ref<'details' | 'conversation' | 'history' | 'edit'>('details')
 
-const editForm = ref({ title: '', description: '', estimatedPrice: 0, agency: '', images: [] as string[], features: [] as string[], dpe: '' })
+const editForm = ref({ title: '', description: '', estimatedPrice: 0, surface: 0, agency: '', images: [] as string[], features: [] as string[], dpe: '' })
 const editSaving = ref(false)
 const editSuccess = ref(false)
 const newFeature = ref('')
@@ -142,6 +142,7 @@ function openEdit() {
     title: currentProcess.value.title,
     description: currentProcess.value.description,
     estimatedPrice: currentProcess.value.price,
+    surface: currentProcess.value.surface,
     agency: currentProcess.value.agency,
     images: currentProcess.value.images.map(i => i.url),
     features: currentProcess.value.features.map(f => f.name),
@@ -162,6 +163,7 @@ async function saveEdit() {
   if (f.title !== orig.title) payload.title = f.title
   if (f.description !== orig.description) payload.description = f.description
   if (f.estimatedPrice !== orig.price) payload.price = f.estimatedPrice
+  if (f.surface !== orig.surface) payload.surface = f.surface
   if (f.agency !== orig.agency) payload.agency = f.agency
   if (f.dpe !== (orig.dpe || '')) payload.dpe = f.dpe
   if (JSON.stringify(f.features) !== JSON.stringify(orig.features.map(x => x.name))) payload.features = f.features
@@ -557,10 +559,14 @@ async function updatePropertyStatus(status: string) {
                 <label class="block text-xs font-medium text-slate-500 mb-1">Description</label>
                 <textarea v-model="editForm.description" rows="4" class="block w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-300 resize-none"></textarea>
               </div>
-              <div class="grid grid-cols-2 gap-4">
+              <div class="grid grid-cols-3 gap-4">
                 <div>
                   <label class="block text-xs font-medium text-slate-500 mb-1">Prix estimé (€)</label>
                   <input v-model.number="editForm.estimatedPrice" type="number" class="block w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-300" />
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-slate-500 mb-1">Surface (m²)</label>
+                  <input v-model.number="editForm.surface" type="number" class="block w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-300" />
                 </div>
                 <div>
                   <label class="block text-xs font-medium text-slate-500 mb-1">Agence</label>

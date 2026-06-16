@@ -146,7 +146,7 @@ export class PropertyService {
     if (dto.features?.length) {
       const features = dto.features.map(name => {
         const f = new PropertyFeature()
-        f.propertyId = saved.id
+        f.property = {id: saved.id} as Property
         f.name = name
         return f
       })
@@ -194,7 +194,7 @@ export class PropertyService {
       await this.featureRepo.delete({ propertyId: id })
       const features = dto.features.map(name => {
         const f = new PropertyFeature()
-        f.propertyId = id
+        f.property = {id: saved.id} as Property
         f.name = name
         return f
       })
