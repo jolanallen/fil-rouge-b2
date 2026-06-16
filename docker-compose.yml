@@ -43,8 +43,7 @@ services:
     depends_on:
       mariadb:
         condition: service_healthy
-    volumes:
-      - immoback_cdn:/app/uploads
+
     restart: on-failure
 
   immobackend:
@@ -73,6 +72,8 @@ services:
       redis:
         condition: service_healthy
     restart: on-failure
+    volumes:
+      - immoback_cdn:/app/uploads
 
   immofront:
     build:
