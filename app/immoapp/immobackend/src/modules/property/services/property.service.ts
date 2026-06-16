@@ -199,7 +199,6 @@ export class PropertyService {
         return f
       })
       await this.featureRepo.save(features)
-      property.features = []
     }
 
     if (dto.images !== undefined) {
