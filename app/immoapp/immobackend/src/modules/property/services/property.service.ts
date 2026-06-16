@@ -205,7 +205,7 @@ export class PropertyService {
     if (dto.images !== undefined) {
       const existingUrls = new Set(property.images.map(i => i.url))
       const incomingUrls = new Set(dto.images)
-
+      const newImages = []
       for (const img of property.images) {
         if (!incomingUrls.has(img.url)) {
           try { await this.storage.delete(img.url) } catch {}
@@ -231,8 +231,9 @@ export class PropertyService {
         image.alt = `Photo ${dto.images.indexOf(url) + 1}`
         image.isPrimary = dto.images.indexOf(url) === 0
         await this.imageRepo.save(image)
+        newImages.push(image)
       }
-      property.images = []
+      property.images = newImages
     }
 
     const saved = await this.propertyRepo.save(property)
