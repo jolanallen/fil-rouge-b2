@@ -226,7 +226,7 @@ export class PropertyService {
           `properties/${id}`,
         )
         const image = new PropertyImage()
-        image.propertyId = id
+        image.property = {id} as Property
         image.url = uploadedUrl
         image.alt = `Photo ${dto.images.indexOf(url) + 1}`
         image.isPrimary = dto.images.indexOf(url) === 0
@@ -239,7 +239,7 @@ export class PropertyService {
 
     if (priceChanged && property.pricePerM2 != null) {
       const history = new PropertyPriceHistory()
-      history.propertyId = saved.id
+      history.property = {id: saved.id} as Property
       history.date = new Date().toISOString().slice(0, 10)
       history.price = Number(property.price)
       history.pricePerM2 = property.pricePerM2
