@@ -16,6 +16,11 @@ export interface AuthResponse {
   expiresIn: number
 }
 
+export interface StaffLoginResponse extends AuthResponse {
+  needsOnboarding: boolean
+  onboardingToken?: string
+}
+
 export interface LoginError {
   code: string
   message: string
