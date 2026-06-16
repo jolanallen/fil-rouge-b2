@@ -6,9 +6,6 @@ export class PropertyFeature {
   @PrimaryGeneratedColumn('uuid')
   id!: string
 
-  @Column({ name: 'property_id' })
-  propertyId!: string
-
   @Column()
   name!: string
 

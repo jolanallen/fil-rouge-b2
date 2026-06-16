@@ -191,7 +191,7 @@ export class PropertyService {
     }
 
     if (dto.features !== undefined) {
-      await this.featureRepo.delete({ propertyId: id })
+      await this.featureRepo.delete({property: {id: id}})
       const features = dto.features.map(name => {
         const f = new PropertyFeature()
         f.property = property
@@ -283,7 +283,7 @@ export class PropertyService {
     if (dto.features?.length) {
       const features = dto.features.map(name => {
         const f = new PropertyFeature()
-        f.propertyId = savedProperty.id
+        f.property = savedProperty
         f.name = name
         return f
       })
@@ -303,7 +303,7 @@ export class PropertyService {
           `properties/${savedProperty.id}`,
         )
         const image = new PropertyImage()
-        image.propertyId = savedProperty.id
+        image.property = savedProperty
         image.url = url
         image.alt = `Photo ${i + 1}`
         image.isPrimary = i === 0
@@ -361,7 +361,7 @@ export class PropertyService {
     const property = await this.authorizeAccess(propertyId, userId, userRole)
     const url = await this.storage.upload(file, `properties/${propertyId}`)
     const image = new PropertyImage()
-    image.propertyId = propertyId
+    image.property = property
     image.url = url
     image.alt = file.originalname
     image.isPrimary = property.images.length === 0
@@ -370,7 +370,9 @@ export class PropertyService {
 
   async deleteImage(propertyId: string, imageId: string, userId: string, userRole: string) {
     await this.authorizeAccess(propertyId, userId, userRole)
-    const image = await this.imageRepo.findOneBy({ id: imageId, propertyId })
+    const image = await this.imageRepo.createQueryBuilder('img')
+      .where('img.id = :imageId AND img.property_id = :propertyId', { imageId, propertyId })
+      .getOne()
     if (!image) throw new NotFoundException('Image not found')
     try { await this.storage.delete(image.url) } catch {}
     await this.imageRepo.delete(imageId)
