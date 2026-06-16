@@ -194,7 +194,7 @@ export class PropertyService {
       await this.featureRepo.delete({ propertyId: id })
       const features = dto.features.map(name => {
         const f = new PropertyFeature()
-        f.property = {id: saved.id} as Property
+        f.property = property
         f.name = name
         return f
       })
@@ -223,10 +223,10 @@ export class PropertyService {
         const buffer = Buffer.from(matches[2], 'base64')
         const uploadedUrl = await this.storage.upload(
           { buffer, originalname: `image.${ext}`, mimetype, size: buffer.length },
-          `properties/${id}`,
+          `properties/${property.id}`,
         )
         const image = new PropertyImage()
-        image.property = {id} as Property
+        image.property = property
         image.url = uploadedUrl
         image.alt = `Photo ${dto.images.indexOf(url) + 1}`
         image.isPrimary = dto.images.indexOf(url) === 0
@@ -239,7 +239,7 @@ export class PropertyService {
 
     if (priceChanged && property.pricePerM2 != null) {
       const history = new PropertyPriceHistory()
-      history.property = {id: saved.id} as Property
+      history.property = property
       history.date = new Date().toISOString().slice(0, 10)
       history.price = Number(property.price)
       history.pricePerM2 = property.pricePerM2
